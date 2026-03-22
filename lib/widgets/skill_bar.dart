@@ -1,0 +1,84 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../core/theme/theme_controller.dart';
+import '../game/game_controller.dart';
+
+class SkillBar extends StatelessWidget {
+  const SkillBar({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = context.watch<ThemeController>().theme;
+
+    return Consumer<GameController>(
+      builder: (context, controller, _) {
+        final inventory = controller.skillInventory;
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: inventory.skills.map((skill) {
+            final remaining = inventory.remaining(skill.id);
+            final isActive = controller.activeSkillId == skill.id;
+            final canUse = remaining > 0 && skill.canUse(controller.board, controller.score);
+
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              child: GestureDetector(
+                onTap: canUse ? () => controller.activateSkill(skill.id) : null,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? theme.buttonColor
+                        : canUse
+                            ? theme.boardColor
+                            : theme.boardColor.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(theme.tileRadius),
+                    border: isActive
+                        ? Border.all(color: theme.textDark, width: 2)
+                        : null,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        skill.icon,
+                        size: 18,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        skill.name,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '$remaining',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+}
