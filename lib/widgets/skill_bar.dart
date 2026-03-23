@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/theme_controller.dart';
 import '../game/game_controller.dart';
+import '../models/game_mode.dart';
 
 class SkillBar extends StatelessWidget {
   const SkillBar({super.key});
@@ -12,6 +13,11 @@ class SkillBar extends StatelessWidget {
 
     return Consumer<GameController>(
       builder: (context, controller, _) {
+        // 노멀 모드에서는 스킬바 숨김
+        if (controller.gameMode == GameMode.normal) {
+          return const SizedBox.shrink();
+        }
+
         final inventory = controller.skillInventory;
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,

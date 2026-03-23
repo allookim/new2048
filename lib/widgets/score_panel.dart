@@ -14,22 +14,12 @@ class ScorePanel extends StatelessWidget {
       builder: (context, controller, _) {
         return Column(
           children: [
-            // 상단 Row: 타이틀 + 스코어 박스들
+            // 상단 Row: 스코어 박스
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  '2048',
-                  style: TextStyle(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                    color: theme.textDark,
-                  ),
-                ),
-                const Spacer(),
-                _ScoreBox(label: 'SCORE', value: controller.score),
-                const SizedBox(width: 6),
-                _ScoreBox(label: 'BEST', value: controller.bestScore),
+                Expanded(child: _ScoreBox(label: 'SCORE', value: controller.score)),
+                const SizedBox(width: 8),
+                Expanded(child: _ScoreBox(label: 'BEST', value: controller.bestScore)),
               ],
             ),
             const SizedBox(height: 6),

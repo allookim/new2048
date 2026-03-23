@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/theme_controller.dart';
 import 'game/game_controller.dart';
-import 'screens/main_menu_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const App());
@@ -27,7 +27,7 @@ class App extends StatelessWidget {
               fontFamily: themeController.theme.fontFamily ?? 'sans-serif',
               useMaterial3: true,
             ),
-            home: const MainMenuScreen(),
+            home: const SplashScreen(),
           );
         },
       ),

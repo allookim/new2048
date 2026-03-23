@@ -57,6 +57,9 @@ class GameThemeData {
   final bool isPremium;
   final int? unlockCost;
 
+  /// 픽셀 아트 스타일 렌더링 사용 여부
+  final bool isPixelStyle;
+
   const GameThemeData({
     required this.id,
     required this.displayName,
@@ -80,6 +83,7 @@ class GameThemeData {
     this.isDefault = false,
     this.isPremium = false,
     this.unlockCost,
+    this.isPixelStyle = false,
   });
 
   Color tileColor(int value) {
