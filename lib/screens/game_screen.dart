@@ -7,6 +7,8 @@ import '../widgets/game_board.dart';
 import '../widgets/game_over_overlay.dart';
 import '../widgets/score_panel.dart';
 import '../widgets/skill_bar.dart';
+import '../widgets/time_up_overlay.dart';
+import '../widgets/timer_bar.dart';
 import '../widgets/win_overlay.dart';
 import 'settings_screen.dart';
 import 'theme_screen.dart';
@@ -47,6 +49,7 @@ class GameScreen extends StatelessWidget {
           child: Column(
             children: [
               const ScorePanel(),
+              const TimerBar(),
               const SizedBox(height: 12),
               Expanded(
                 child: Center(
@@ -63,6 +66,7 @@ class GameScreen extends StatelessWidget {
                             GameBoard(),
                             GameOverOverlay(),
                             WinOverlay(),
+                            TimeUpOverlay(),
                           ],
                         ),
                       );
@@ -132,6 +136,18 @@ class _GameDrawer extends StatelessWidget {
               badge: '특수 타일',
               onTap: () {
                 gameController.startGame(GameMode.item);
+                Navigator.pop(context);
+              },
+            ),
+
+            // 스피드 게임
+            _DrawerItem(
+              icon: Icons.speed_rounded,
+              label: '스피드 게임',
+              theme: theme,
+              badge: '60초',
+              onTap: () {
+                gameController.startGame(GameMode.speed);
                 Navigator.pop(context);
               },
             ),

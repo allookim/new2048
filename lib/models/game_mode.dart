@@ -1,1 +1,1 @@
-enum GameMode { normal, item }
+enum GameMode { normal, item, speed }

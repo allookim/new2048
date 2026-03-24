@@ -10,9 +10,10 @@ enum Direction { left, right, up, down }
 ///   wild : 어떤 값과도 머지 가능 (ice 제외)
 ///   golden: 머지 점수 ×2
 ///   bomb : 머지 후 주변 타일 폭발 (GameController에서 처리)
-({List<Tile?> line, int score}) slideLineLeft(List<Tile?> line) {
+({List<Tile?> line, int score, int mergeCount}) slideLineLeft(List<Tile?> line) {
   final tiles = line.whereType<Tile>().toList();
   int score = 0;
+  int mergeCount = 0;
   int i = 0;
 
   while (i < tiles.length - 1) {
@@ -60,6 +61,7 @@ enum Direction { left, right, up, down }
         tileType: resultType,
       );
       score += mergeScore;
+      mergeCount++;
       tiles.removeAt(i + 1);
       i++; // 새로 머지된 타일은 건너뜀
     } else {
@@ -71,7 +73,7 @@ enum Direction { left, right, up, down }
   for (int j = 0; j < tiles.length; j++) {
     result[j] = tiles[j];
   }
-  return (line: result, score: score);
+  return (line: result, score: score, mergeCount: mergeCount);
 }
 
 /// 방향에 맞게 보드 전체에 이동·머지 적용.
@@ -85,6 +87,7 @@ MoveResult applyMove(List<List<Tile?>> board, Direction direction) {
   });
 
   int totalScore = 0;
+  int totalMergeCount = 0;
   bool changed = false;
 
   void processRow(int r, bool reversed) {
@@ -93,6 +96,7 @@ MoveResult applyMove(List<List<Tile?>> board, Direction direction) {
     final result = slideLineLeft(line);
     newBoard[r] = reversed ? result.line.reversed.toList() : result.line;
     totalScore += result.score;
+    totalMergeCount += result.mergeCount;
     for (int c = 0; c < 4; c++) {
       if (newBoard[r][c] != null) {
         newBoard[r][c] = newBoard[r][c]!.copyWith(row: r, col: c);
@@ -113,6 +117,7 @@ MoveResult applyMove(List<List<Tile?>> board, Direction direction) {
       newBoard[r][c] = newCol[r]?.copyWith(row: r, col: c);
     }
     totalScore += result.score;
+    totalMergeCount += result.mergeCount;
     if (!_listEquals(original, [for (int r = 0; r < 4; r++) newBoard[r][c]?.value])) {
       changed = true;
     }
@@ -145,6 +150,7 @@ MoveResult applyMove(List<List<Tile?>> board, Direction direction) {
     scoreGained: totalScore,
     didChange: changed,
     bombPositions: bombPositions,
+    mergeCount: totalMergeCount,
   );
 }
 

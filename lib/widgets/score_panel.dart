@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/theme_controller.dart';
 import '../game/game_controller.dart';
+import '../models/game_mode.dart';
 
 class ScorePanel extends StatelessWidget {
   const ScorePanel({super.key});
@@ -12,6 +13,10 @@ class ScorePanel extends StatelessWidget {
 
     return Consumer<GameController>(
       builder: (context, controller, _) {
+        final isSpeed = controller.gameMode == GameMode.speed;
+        final bestValue = isSpeed ? controller.bestSpeedScore : controller.bestScore;
+        final bestLabel = isSpeed ? 'BEST⚡' : 'BEST';
+
         return Column(
           children: [
             // 상단 Row: 스코어 박스
@@ -19,7 +24,7 @@ class ScorePanel extends StatelessWidget {
               children: [
                 Expanded(child: _ScoreBox(label: 'SCORE', value: controller.score)),
                 const SizedBox(width: 8),
-                Expanded(child: _ScoreBox(label: 'BEST', value: controller.bestScore)),
+                Expanded(child: _ScoreBox(label: bestLabel, value: bestValue)),
               ],
             ),
             const SizedBox(height: 6),
@@ -27,12 +32,14 @@ class ScorePanel extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                _SmallButton(
-                  icon: Icons.undo,
-                  onPressed: controller.canUndo ? controller.undo : null,
-                  backgroundColor: theme.boardColor,
-                ),
-                const SizedBox(width: 6),
+                if (!isSpeed) ...[
+                  _SmallButton(
+                    icon: Icons.undo,
+                    onPressed: controller.canUndo ? controller.undo : null,
+                    backgroundColor: theme.boardColor,
+                  ),
+                  const SizedBox(width: 6),
+                ],
                 _SmallButton(
                   label: 'New Game',
                   onPressed: controller.newGame,

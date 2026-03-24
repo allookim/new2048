@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,11 +16,14 @@ import 'spawn_config.dart';
 
 class GameController extends ChangeNotifier {
   static const String _bestScoreKey = 'best_score';
+  static const String _bestSpeedScoreKey = 'best_speed_score';
   static const int _maxHistorySize = 5;
+  static const double _speedInitialSeconds = 60.0;
 
   List<List<Tile?>> _board = List.generate(4, (_) => List.filled(4, null));
   int _score = 0;
   int _bestScore = 0;
+  int _bestSpeedScore = 0;
   GameStatus _status = GameStatus.playing;
   bool _hasSeenWin = false;
   final Random _random = Random();
@@ -31,31 +35,50 @@ class GameController extends ChangeNotifier {
   late SkillInventory _skillInventory;
   String? _activeSkillId;
 
+  // Speed mode
+  Timer? _speedTimer;
+  double _remainingSeconds = _speedInitialSeconds;
+  int _combo = 0;
+  double _comboMultiplier = 1.0;
+  DateTime? _lastMoveTime;
+  int _maxCombo = 0;
+
   List<List<Tile?>> get board => _board;
   int get score => _score;
   int get bestScore => _bestScore;
+  int get bestSpeedScore => _bestSpeedScore;
   GameStatus get status => _status;
-  bool get canUndo => _history.isNotEmpty;
+  bool get canUndo => _history.isNotEmpty && _gameMode != GameMode.speed;
   SkillInventory get skillInventory => _skillInventory;
   String? get activeSkillId => _activeSkillId;
   bool get isTargeting => _activeSkillId != null;
   GameMode get gameMode => _gameMode;
+  double get remainingSeconds => _remainingSeconds;
+  int get combo => _combo;
+  double get comboMultiplier => _comboMultiplier;
+  int get maxCombo => _maxCombo;
 
   static List<Skill> get defaultSkills => defaultSkillSet;
 
   GameController() {
     _skillInventory = SkillInventory(defaultSkills);
-    _loadBestScore().then((_) => newGame());
+    _loadBestScores().then((_) => newGame());
   }
 
-  Future<void> _loadBestScore() async {
+  Future<void> _loadBestScores() async {
     final prefs = await SharedPreferences.getInstance();
     _bestScore = prefs.getInt(_bestScoreKey) ?? 0;
+    _bestSpeedScore = prefs.getInt(_bestSpeedScoreKey) ?? 0;
   }
 
   Future<void> _saveBestScore() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_bestScoreKey, _bestScore);
+  }
+
+  Future<void> _saveBestSpeedScore() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_bestSpeedScoreKey, _bestSpeedScore);
   }
 
   void _pushHistory() {
@@ -66,7 +89,7 @@ class GameController extends ChangeNotifier {
   }
 
   void undo() {
-    if (_history.isEmpty) return;
+    if (_history.isEmpty || _gameMode == GameMode.speed) return;
     final snapshot = _history.removeLast();
     _board = snapshot.board;
     _score = snapshot.score;
@@ -80,26 +103,56 @@ class GameController extends ChangeNotifier {
 
   /// 게임 모드를 지정해서 새 게임 시작
   void startGame(GameMode mode) {
+    _speedTimer?.cancel();
     _gameMode = mode;
     newGame();
   }
 
   void newGame() {
+    _speedTimer?.cancel();
     _board = List.generate(4, (_) => List.filled(4, null));
     _score = 0;
     _status = GameStatus.playing;
-    _hasSeenWin = false;
+    _hasSeenWin = _gameMode == GameMode.speed; // 스피드 모드는 2048 후에도 계속
     _history.clear();
     _skillInventory = SkillInventory(defaultSkills);
     _activeSkillId = null;
-    _spawnConfig = const SpawnConfig();
+
+    if (_gameMode == GameMode.speed) {
+      _spawnConfig = const SpawnConfig(fourSpawnRate: 0.25); // 스피드는 4 타일 더 자주
+      _remainingSeconds = _speedInitialSeconds;
+      _combo = 0;
+      _comboMultiplier = 1.0;
+      _lastMoveTime = null;
+      _maxCombo = 0;
+      _startSpeedTimer();
+    } else {
+      _spawnConfig = const SpawnConfig();
+    }
+
     _spawnTile();
     _spawnTile();
     notifyListeners();
   }
 
+  void _startSpeedTimer() {
+    _speedTimer = Timer.periodic(const Duration(milliseconds: 100), (_) {
+      _remainingSeconds -= 0.1;
+      if (_remainingSeconds <= 0) {
+        _remainingSeconds = 0;
+        _speedTimer?.cancel();
+        _status = GameStatus.timeUp;
+        if (_score > _bestSpeedScore) {
+          _bestSpeedScore = _score;
+          _saveBestSpeedScore();
+        }
+      }
+      notifyListeners();
+    });
+  }
+
   void move(Direction direction) {
-    if (_status == GameStatus.gameOver) return;
+    if (_status == GameStatus.gameOver || _status == GameStatus.timeUp) return;
     if (isTargeting) {
       _activeSkillId = null;
       notifyListeners();
@@ -111,30 +164,88 @@ class GameController extends ChangeNotifier {
 
     _pushHistory();
     _board = result.board;
-    _score += result.scoreGained;
 
-    if (_score > _bestScore) {
-      _bestScore = _score;
-      _saveBestScore();
+    if (_gameMode == GameMode.speed) {
+      // 콤보 계산
+      final now = DateTime.now();
+      if (result.mergeCount > 0) {
+        final timeSinceLast = _lastMoveTime != null
+            ? now.difference(_lastMoveTime!).inMilliseconds
+            : 9999;
+        _combo = timeSinceLast <= 800 ? _combo + 1 : 1;
+        if (_combo > _maxCombo) _maxCombo = _combo;
+      } else {
+        _combo = 0;
+      }
+      _lastMoveTime = now;
+      _comboMultiplier = _comboToMultiplier(_combo);
+
+      // 점수에 콤보 배수 적용
+      final multipliedScore = (result.scoreGained * _comboMultiplier).round();
+      _score += multipliedScore;
+
+      // 시간 보너스 계산
+      double timeBonus = result.mergeCount * 0.5;
+      if (result.mergeCount >= 2) timeBonus += 1.0;
+
+      // 이번 이동에서 생성된 최고 머지 값 확인
+      int maxMergedValue = 0;
+      for (int r = 0; r < 4; r++) {
+        for (int c = 0; c < 4; c++) {
+          final tile = _board[r][c];
+          if (tile != null && tile.isMerged && tile.value > maxMergedValue) {
+            maxMergedValue = tile.value;
+          }
+        }
+      }
+      if (maxMergedValue >= 512) timeBonus += 2.0;
+      if (maxMergedValue >= 2048) timeBonus += 10.0;
+
+      _remainingSeconds = (_remainingSeconds + timeBonus).clamp(0, 999);
+
+      // 스피드 베스트 갱신
+      if (_score > _bestSpeedScore) {
+        _bestSpeedScore = _score;
+        _saveBestSpeedScore();
+      }
+
+      // 스피드 모드 게임 오버 (보드 꽉 참)
+      if (isGameOver(_board)) {
+        _status = GameStatus.gameOver;
+        _speedTimer?.cancel();
+      }
+    } else {
+      _score += result.scoreGained;
+
+      if (_score > _bestScore) {
+        _bestScore = _score;
+        _saveBestScore();
+      }
+
+      // 폭탄 폭발 처리
+      for (final (r, c) in result.bombPositions) {
+        _explodeBomb(r, c);
+      }
+
+      // 얼음 타일 카운트다운 & 자동 해동
+      _decrementFrozenTiles();
+
+      if (!_hasSeenWin && hasWon(_board)) {
+        _status = GameStatus.won;
+      } else if (isGameOver(_board)) {
+        _status = GameStatus.gameOver;
+      }
     }
-
-    // 폭탄 폭발 처리
-    for (final (r, c) in result.bombPositions) {
-      _explodeBomb(r, c);
-    }
-
-    // 얼음 타일 카운트다운 & 자동 해동
-    _decrementFrozenTiles();
 
     _spawnTile();
-
-    if (!_hasSeenWin && hasWon(_board)) {
-      _status = GameStatus.won;
-    } else if (isGameOver(_board)) {
-      _status = GameStatus.gameOver;
-    }
-
     notifyListeners();
+  }
+
+  double _comboToMultiplier(int combo) {
+    if (combo <= 1) return 1.0;
+    if (combo == 2) return 1.5;
+    if (combo == 3) return 2.0;
+    return 3.0;
   }
 
   /// 얼음 타일 카운트다운: 매 턴 1씩 감소, 0이 되면 일반 타일로 해동
@@ -178,7 +289,7 @@ class GameController extends ChangeNotifier {
 
   void activateSkill(String skillId) {
     if (_status == GameStatus.gameOver) return;
-    if (_gameMode == GameMode.normal) return;
+    if (_gameMode != GameMode.item) return;
 
     final skill = _skillInventory.getSkill(skillId);
     if (skill == null) return;
@@ -262,9 +373,9 @@ class GameController extends ChangeNotifier {
   }
 
   /// 아이템 모드에서 특수 타일 타입 랜덤 결정
-  /// 노멀 모드에서는 항상 normal 반환
+  /// 노멀/스피드 모드에서는 항상 normal 반환
   TileType _pickTileType() {
-    if (_gameMode == GameMode.normal) return TileType.normal;
+    if (_gameMode != GameMode.item) return TileType.normal;
 
     final roll = _random.nextDouble();
     if (roll < 0.06) return TileType.golden; // 6%
@@ -272,5 +383,11 @@ class GameController extends ChangeNotifier {
     if (roll < 0.13) return TileType.ice;    // 3%
     if (roll < 0.16) return TileType.wild;   // 3%
     return TileType.normal;                   // 84%
+  }
+
+  @override
+  void dispose() {
+    _speedTimer?.cancel();
+    super.dispose();
   }
 }

@@ -1,1 +1,1 @@
-enum GameStatus { playing, won, gameOver }
+enum GameStatus { playing, won, gameOver, timeUp }
