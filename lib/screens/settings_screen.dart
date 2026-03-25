@@ -1,129 +1,218 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../core/theme/theme_controller.dart';
 
-class SettingsScreen extends StatelessWidget {
+// ── Warm fixed palette (테마 무관) ─────────────────────────────
+const _kBg     = Color(0xFFBE6833); // 따뜻한 호박색 배경
+const _kCard   = Color(0xFF9E5028); // 카드 배경
+const _kAccent = Color(0xFFF5A623); // 강조 (골드 앰버)
+const _kText   = Colors.white;
+const _kDim    = Color(0x99FFFFFF); // 보조 텍스트
+const _kLabel  = Color(0x66FFFFFF); // 섹션 레이블
+
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = context.watch<ThemeController>().theme;
-
-    return Scaffold(
-      backgroundColor: theme.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: theme.backgroundColor,
-        elevation: 0,
-        iconTheme: IconThemeData(color: theme.textDark),
-        title: Text(
-          '설정',
-          style: TextStyle(
-            color: theme.textDark,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          children: [
-            _SectionHeader(label: '게임', theme: theme),
-            _SettingsTile(
-              icon: Icons.vibration,
-              label: '진동 효과',
-              theme: theme,
-              trailing: Switch(
-                value: false,
-                onChanged: (_) {},
-                activeColor: theme.buttonColor,
-              ),
-            ),
-            _SettingsTile(
-              icon: Icons.music_note,
-              label: '효과음',
-              theme: theme,
-              trailing: Switch(
-                value: false,
-                onChanged: (_) {},
-                activeColor: theme.buttonColor,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _SectionHeader(label: '정보', theme: theme),
-            _SettingsTile(
-              icon: Icons.info_outline,
-              label: '버전',
-              theme: theme,
-              trailing: Text(
-                '1.0.0',
-                style: TextStyle(
-                  color: theme.textDark.withValues(alpha: 0.5),
-                  fontSize: 14,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SectionHeader extends StatelessWidget {
-  final String label;
-  final dynamic theme;
-
-  const _SectionHeader({required this.label, required this.theme});
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _vibration = false;
+  bool _sound = false;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6, top: 4),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: theme.textDark.withValues(alpha: 0.45),
-          letterSpacing: 1.2,
+    return Scaffold(
+      backgroundColor: _kBg,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+
+              // ── Title row ──────────────────────────────────
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    behavior: HitTestBehavior.opaque,
+                    child: const Padding(
+                      padding: EdgeInsets.all(6),
+                      child: Icon(Icons.arrow_back_rounded,
+                          color: _kText, size: 24),
+                    ),
+                  ),
+                  const Expanded(
+                    child: Text(
+                      'Settings',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                        color: _kText,
+                        letterSpacing: -1,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 36), // balance spacer
+                ],
+              ),
+
+              const SizedBox(height: 28),
+
+              // ── Section: Game ─────────────────────────────
+              _SectionLabel('GAME SETTINGS'),
+              const SizedBox(height: 8),
+              _ToggleTile(
+                icon: Icons.vibration_rounded,
+                label: 'Vibration',
+                value: _vibration,
+                onChanged: (v) => setState(() => _vibration = v),
+              ),
+              const SizedBox(height: 8),
+              _ToggleTile(
+                icon: Icons.music_note_rounded,
+                label: 'Sound Effects',
+                value: _sound,
+                onChanged: (v) => setState(() => _sound = v),
+              ),
+
+              const SizedBox(height: 24),
+
+              // ── Section: Info ─────────────────────────────
+              _SectionLabel('INFO'),
+              const SizedBox(height: 8),
+              _InfoTile(
+                icon: Icons.info_outline_rounded,
+                label: 'Version',
+                value: '1.0.0',
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _SettingsTile extends StatelessWidget {
+// ── Widgets ───────────────────────────────────────────────────
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: const TextStyle(
+        fontFamily: 'Nunito',
+        fontSize: 10,
+        fontWeight: FontWeight.w900,
+        color: _kLabel,
+        letterSpacing: 3,
+      ),
+    );
+  }
+}
+
+class _ToggleTile extends StatelessWidget {
   final IconData icon;
   final String label;
-  final dynamic theme;
-  final Widget trailing;
+  final bool value;
+  final ValueChanged<bool> onChanged;
 
-  const _SettingsTile({
+  const _ToggleTile({
     required this.icon,
     required this.label,
-    required this.theme,
-    required this.trailing,
+    required this.value,
+    required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: theme.boardColor,
-        borderRadius: BorderRadius.circular(theme.tileRadius + 2),
+        color: _kCard,
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: ListTile(
-        leading: Icon(icon, color: theme.buttonColor, size: 22),
-        title: Text(
-          label,
-          style: TextStyle(
-            color: theme.textDark,
-            fontSize: 15,
+      child: Row(
+        children: [
+          Icon(icon, color: _kAccent, size: 22),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: _kText,
+              ),
+            ),
           ),
-        ),
-        trailing: trailing,
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeThumbColor: _kBg,
+            activeTrackColor: _kAccent,
+            inactiveThumbColor: _kDim,
+            inactiveTrackColor: Colors.white12,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        color: _kCard,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: _kAccent, size: 22),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: _kText,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: _kDim,
+            ),
+          ),
+        ],
       ),
     );
   }

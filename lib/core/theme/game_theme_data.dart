@@ -76,9 +76,9 @@ class GameThemeData {
     this.tileTextColors,
     this.fontFamily,
     this.boardPadding = 12.0,
-    this.gap = 8.0,
-    this.boardRadius = 8.0,
-    this.tileRadius = 6.0,
+    this.gap = 12.0,
+    this.boardRadius = 22.0,
+    this.tileRadius = 14.0,
     this.animationConfig = const TileAnimationConfig(),
     this.isDefault = false,
     this.isPremium = false,
@@ -97,10 +97,11 @@ class GameThemeData {
     return value <= 4 ? textDark : textLight;
   }
 
-  double tileFontSize(int value) {
-    if (value < 100) return 36;
-    if (value < 1000) return 28;
-    return 22;
+  double tileFontSize(int value, [double cellSize = 80.0]) {
+    if (value < 16) return cellSize * 0.58;
+    if (value < 128) return cellSize * 0.48;
+    if (value < 1024) return cellSize * 0.38;
+    return cellSize * 0.29;
   }
 
   double cellSize(double boardWidth) {

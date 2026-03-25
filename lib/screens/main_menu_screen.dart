@@ -1,62 +1,76 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../core/theme/theme_controller.dart';
-import '../widgets/menu_button.dart';
 import 'game_screen.dart';
-import 'theme_screen.dart';
 
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.watch<ThemeController>().theme;
-
     return Scaffold(
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: const Color(0xFF6B4FA0),
       body: SafeArea(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
+              const Text(
                 '2048',
                 style: TextStyle(
-                  fontSize: 72,
-                  fontWeight: FontWeight.bold,
-                  color: theme.textDark,
+                  fontFamily: 'Nunito',
+                  fontSize: 88,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -3,
+                  height: 1,
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                '타일을 합쳐서 2048을 만들어보세요!',
+              const Text(
+                'animated edition',
                 style: TextStyle(
-                  fontSize: 16,
-                  color: theme.textDark.withValues(alpha: 0.7),
+                  fontFamily: 'Nunito',
+                  fontSize: 13,
+                  color: Color(0xB3FFFFFF),
+                  letterSpacing: 4,
                 ),
               ),
-              const SizedBox(height: 48),
-              MenuButton(
-                label: 'Play',
-                icon: Icons.play_arrow,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const GameScreen()),
-                  );
-                },
-              ),
-              MenuButton(
-                label: 'Themes',
-                icon: Icons.palette,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ThemeScreen()),
-                  );
-                },
+              const SizedBox(height: 56),
+              _PlayButton(
+                onTap: () => Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const GameScreen()),
+                ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _PlayButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _PlayButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 52, vertical: 18),
+        decoration: BoxDecoration(
+          color: const Color(0xFF6DDDD0),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Text(
+          'Play',
+          style: TextStyle(
+            fontFamily: 'Nunito',
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF3A2A70),
           ),
         ),
       ),

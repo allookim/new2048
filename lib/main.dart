@@ -24,7 +24,7 @@ class App extends StatelessWidget {
             title: '2048',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
-              fontFamily: themeController.theme.fontFamily ?? 'sans-serif',
+              fontFamily: themeController.theme.fontFamily ?? 'Nunito',
               useMaterial3: true,
             ),
             home: const SplashScreen(),

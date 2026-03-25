@@ -1,14 +1,25 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/theme_controller.dart';
+import '../game/game_controller.dart';
+import '../models/game_mode.dart';
 import '../models/tile.dart';
 import 'pixel_tile_painter.dart';
+
+const _kGifValues = {2, 4, 8, 16, 32, 64, 128};
 
 class TileWidget extends StatefulWidget {
   final Tile tile;
   final double size;
+  final double wiperAngle; // degrees, driven by GameBoard ticker
 
-  const TileWidget({super.key, required this.tile, required this.size});
+  const TileWidget({
+    super.key,
+    required this.tile,
+    required this.size,
+    this.wiperAngle = 0.0,
+  });
 
   @override
   State<TileWidget> createState() => _TileWidgetState();
@@ -80,14 +91,19 @@ class _TileWidgetState extends State<TileWidget>
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeController>().theme;
+    final isGifMode = context.read<GameController>().gameMode == GameMode.normalTest
+        && _kGifValues.contains(widget.tile.value);
 
     if (theme.isPixelStyle) {
       return _buildPixelTile(theme);
     }
+    if (isGifMode) {
+      return _buildGifTile(theme);
+    }
     return _buildClassicTile(theme);
   }
 
-  Widget _buildClassicTile(dynamic theme) {
+  Widget _buildGifTile(dynamic theme) {
     return AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) => Transform.scale(
@@ -102,15 +118,94 @@ class _TileWidgetState extends State<TileWidget>
             color: theme.tileColor(widget.tile.value),
             borderRadius: BorderRadius.circular(theme.tileRadius),
           ),
-          child: Center(
-            child: Text(
-              '${widget.tile.value}',
-              style: TextStyle(
-                fontSize: theme.tileFontSize(widget.tile.value),
-                fontWeight: FontWeight.bold,
-                color: theme.tileTextColor(widget.tile.value),
-              ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(theme.tileRadius),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  'assets/tiles/${widget.tile.value}.gif',
+                  fit: BoxFit.cover,
+                ),
+                // Bubble decoration
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    width: 18,
+                    height: 18,
+                    decoration: const BoxDecoration(
+                      color: Color(0x40FFFFFF),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildClassicTile(dynamic theme) {
+    // wiper angle: suppress during merge spring
+    final wiperRad = _inMergeAnim ? 0.0 : widget.wiperAngle * pi / 180;
+
+    return AnimatedBuilder(
+      animation: _scaleAnimation,
+      builder: (context, child) => Transform.scale(
+        scale: _scaleAnimation.value,
+        child: child,
+      ),
+      child: _withSpecialOverlay(
+        child: Container(
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            color: theme.tileColor(widget.tile.value),
+            borderRadius: BorderRadius.circular(theme.tileRadius),
+          ),
+          child: Stack(
+            children: [
+              // Bubble decoration — top-left white circle
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: const BoxDecoration(
+                    color: Color(0x40FFFFFF),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+              // Number text with wiper rotation
+              Center(
+                child: Transform(
+                  transform: Matrix4.rotationZ(wiperRad),
+                  alignment: const Alignment(0, 1.4),
+                  child: Text(
+                    '${widget.tile.value}',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontSize: theme.tileFontSize(
+                          widget.tile.value, widget.size),
+                      fontWeight: FontWeight.w900,
+                      color: theme.tileTextColor(widget.tile.value),
+                      shadows: const [
+                        Shadow(
+                          color: Color(0x38000000),
+                          offset: Offset(0, 4),
+                          blurRadius: 0,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -143,7 +238,6 @@ class _TileWidgetState extends State<TileWidget>
     );
   }
 
-  /// 특수 타일 타입에 따른 아이콘 + 오버레이 Stack으로 감싸기
   Widget _withSpecialOverlay({required Widget child}) {
     final type = widget.tile.tileType;
     if (type == TileType.normal) return child;
@@ -151,7 +245,6 @@ class _TileWidgetState extends State<TileWidget>
     return Stack(
       children: [
         child,
-        // 얼음 타일: 파란 반투명 오버레이
         if (type == TileType.ice)
           Positioned.fill(
             child: Container(
@@ -161,13 +254,11 @@ class _TileWidgetState extends State<TileWidget>
               ),
             ),
           ),
-        // 아이콘 배지 (우상단)
         Positioned(
           top: 3,
           right: 3,
           child: _SpecialBadge(type: type, tileSize: widget.size),
         ),
-        // 얼음 타일 남은 턴 (하단 중앙)
         if (type == TileType.ice && widget.tile.frozenTurns > 0)
           Positioned(
             bottom: 4,
@@ -175,7 +266,8 @@ class _TileWidgetState extends State<TileWidget>
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 decoration: BoxDecoration(
                   color: const Color(0xCC00BFFF),
                   borderRadius: BorderRadius.circular(6),
@@ -194,10 +286,8 @@ class _TileWidgetState extends State<TileWidget>
       ],
     );
   }
-
 }
 
-/// 특수 타일 아이콘 배지
 class _SpecialBadge extends StatelessWidget {
   final TileType type;
   final double tileSize;
@@ -209,13 +299,16 @@ class _SpecialBadge extends StatelessWidget {
     final iconSize = (tileSize * 0.22).clamp(10.0, 18.0);
     final (icon, color) = switch (type) {
       TileType.golden => (Icons.star_rounded, const Color(0xFFFFD700)),
-      TileType.bomb   => (Icons.local_fire_department_rounded, const Color(0xFFFF4500)),
-      TileType.ice    => (Icons.ac_unit_rounded, const Color(0xFF00BFFF)),
-      TileType.wild   => (Icons.auto_awesome, const Color(0xFFDA70D6)),
+      TileType.bomb => (Icons.local_fire_department_rounded, const Color(0xFFFF4500)),
+      TileType.ice => (Icons.ac_unit_rounded, const Color(0xFF00BFFF)),
+      TileType.wild => (Icons.auto_awesome, const Color(0xFFDA70D6)),
       TileType.normal => (Icons.circle, Colors.transparent),
     };
 
-    return Icon(icon, size: iconSize, color: color,
+    return Icon(
+      icon,
+      size: iconSize,
+      color: color,
       shadows: const [Shadow(color: Colors.black45, blurRadius: 3)],
     );
   }

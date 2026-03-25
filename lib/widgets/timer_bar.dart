@@ -53,7 +53,7 @@ class _TimerBarState extends State<TimerBar> {
             ? Colors.red.shade400
             : isMid
                 ? Colors.orange.shade400
-                : Colors.green.shade500;
+                : const Color(0xFF6DDDD0);
 
         final timeDisplay = seconds >= 10
             ? seconds.toStringAsFixed(1)
@@ -75,43 +75,26 @@ class _TimerBarState extends State<TimerBar> {
                 ),
               ),
               const SizedBox(height: 5),
-              // 시간 + 콤보 행
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // 시간 표시
-                  AnimatedOpacity(
-                    opacity: isLow ? (_blink ? 1.0 : 0.3) : 1.0,
-                    duration: const Duration(milliseconds: 100),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.timer_rounded, size: 15, color: barColor),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${timeDisplay}s',
-                          style: TextStyle(
-                            fontSize: isLow ? 17 : 14,
-                            fontWeight: FontWeight.bold,
-                            color: barColor,
-                          ),
-                        ),
-                      ],
+              // 시간 표시
+              AnimatedOpacity(
+                opacity: isLow ? (_blink ? 1.0 : 0.3) : 1.0,
+                duration: const Duration(milliseconds: 100),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.timer_rounded, size: 15, color: barColor),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${timeDisplay}s',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: isLow ? 17 : 14,
+                        fontWeight: FontWeight.w900,
+                        color: barColor,
+                      ),
                     ),
-                  ),
-                  // 콤보 배지
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: controller.combo >= 2
-                        ? _ComboBadge(
-                            key: ValueKey(controller.combo),
-                            combo: controller.combo,
-                            multiplier: controller.comboMultiplier,
-                            theme: theme,
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -121,55 +104,3 @@ class _TimerBarState extends State<TimerBar> {
   }
 }
 
-class _ComboBadge extends StatelessWidget {
-  final int combo;
-  final double multiplier;
-  final dynamic theme;
-
-  const _ComboBadge({
-    super.key,
-    required this.combo,
-    required this.multiplier,
-    required this.theme,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-      decoration: BoxDecoration(
-        color: theme.buttonColor,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '${combo} COMBO',
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(width: 5),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.25),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              '×${multiplier.toStringAsFixed(1)}',
-              style: const TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
