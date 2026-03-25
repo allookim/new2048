@@ -63,15 +63,15 @@ class _GameScreenState extends State<GameScreen>
 
     return Scaffold(
       backgroundColor: theme.backgroundColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // ── Main content ──────────────────────────────────
-            Padding(
+      body: Stack(
+        children: [
+          // ── Main content ──────────────────────────────────
+          SafeArea(
+            child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
                 children: [
-                  const SizedBox(height: 36),
+                  const SizedBox(height: 18),
                   _TitleRow(onMenu: _openDrawer),
                   const SizedBox(height: 30),
                   const _ScoreRow(),
@@ -116,6 +116,7 @@ class _GameScreenState extends State<GameScreen>
                 ],
               ),
             ),
+          ),
 
             // ── Full-screen top-sliding drawer ────────────────
             SlideTransition(
@@ -124,7 +125,6 @@ class _GameScreenState extends State<GameScreen>
             ),
           ],
         ),
-      ),
     );
   }
 }
@@ -165,7 +165,7 @@ class _TitleRow extends StatelessWidget {
           '2048',
           style: TextStyle(
             fontFamily: 'Nunito',
-            fontSize: 64,
+            fontSize: 51,
             fontWeight: FontWeight.w900,
             color: Colors.white,
             letterSpacing: -2,
@@ -383,47 +383,28 @@ class _FullScreenDrawer extends StatelessWidget {
         child: Column(
           children: [
             // Header
-            Padding(
-              padding: const EdgeInsets.only(top: 32, bottom: 16),
-              child: Row(
-                children: [
-                  const SizedBox(width: 48), // balance spacer
-                  const Expanded(
-                    child: Text(
-                      '2048',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 64,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: -2,
-                        height: 1,
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 48,
-                    child: IconButton(
-                      icon: const Icon(Icons.close,
-                          color: Color(0x99FFFFFF), size: 22),
-                      onPressed: onClose,
-                    ),
-                  ),
-                ],
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16, right: 16),
+                child: IconButton(
+                  icon: const Icon(Icons.close,
+                      color: Color(0x99FFFFFF), size: 30),
+                  onPressed: onClose,
+                ),
               ),
             ),
 
             // Body
             Expanded(
-              child: Center(
+              child: Align(
+                alignment: const Alignment(0, -0.3),
                 child: SizedBox(
                   width: 320,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Game Mode
-                      const _SectionLabel('GAME MODE'),
                       _MenuItem(
                         label: 'Normal',
                         isActive: currentMode == GameMode.normal,
@@ -460,7 +441,6 @@ class _FullScreenDrawer extends StatelessWidget {
                       Container(height: 1, color: Colors.white12),
                       const SizedBox(height: 12),
                       // Settings
-                      const _SectionLabel('SETTINGS'),
                       _MenuItem(
                         label: 'Theme',
                         onTap: () {
@@ -614,7 +594,7 @@ class _MenuItem extends StatelessWidget {
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontFamily: 'Nunito',
-              fontSize: 22,
+              fontSize: 26,
               fontWeight: FontWeight.w900,
               color: Colors.white,
             ),
