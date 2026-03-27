@@ -111,7 +111,6 @@ class _GameScreenState extends State<GameScreen>
                         ? const SkillBar()
                         : const SizedBox.shrink(),
                   ),
-                  const _BottomSection(),
                   const SizedBox(height: 12),
                 ],
               ),
@@ -121,7 +120,9 @@ class _GameScreenState extends State<GameScreen>
             // ── Full-screen top-sliding drawer ────────────────
             SlideTransition(
               position: _drawerSlide,
-              child: _FullScreenDrawer(onClose: _closeDrawer),
+              child: _FullScreenDrawer(
+                onClose: _closeDrawer,
+              ),
             ),
           ],
         ),
@@ -162,10 +163,10 @@ class _TitleRow extends StatelessWidget {
         ),
         // Title
         const Text(
-          '2048',
+          'Num Loop',
           style: TextStyle(
             fontFamily: 'Nunito',
-            fontSize: 51,
+            fontSize: 40,
             fontWeight: FontWeight.w900,
             color: Colors.white,
             letterSpacing: -2,
@@ -378,7 +379,7 @@ class _FullScreenDrawer extends StatelessWidget {
     final currentMode = gc.gameMode;
 
     return Material(
-      color: const Color(0xFF3A2870),
+      color: const Color(0xFFD9A84D),
       child: SafeArea(
         child: Column(
           children: [
@@ -455,7 +456,6 @@ class _FullScreenDrawer extends StatelessWidget {
                       _MenuItem(
                         label: 'Settings',
                         onTap: () {
-                          onClose();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -540,27 +540,6 @@ class _ComboBadgeRow extends StatelessWidget {
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  final String text;
-  const _SectionLabel(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontFamily: 'Nunito',
-          fontSize: 10,
-          fontWeight: FontWeight.w900,
-          color: Color(0x59FFFFFF),
-          letterSpacing: 3,
-        ),
-      ),
-    );
-  }
-}
 
 class _MenuItem extends StatelessWidget {
   final String label;
@@ -584,19 +563,17 @@ class _MenuItem extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           decoration: BoxDecoration(
-            color: isActive
-                ? const Color(0x266DDDD0)
-                : Colors.transparent,
+            color: isActive ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Nunito',
               fontSize: 26,
               fontWeight: FontWeight.w900,
-              color: Colors.white,
+              color: isActive ? const Color(0xFFB5762A) : Colors.white,
             ),
           ),
         ),

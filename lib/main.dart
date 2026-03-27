@@ -21,7 +21,7 @@ class App extends StatelessWidget {
       child: Consumer<ThemeController>(
         builder: (context, themeController, child) {
           return MaterialApp(
-            title: '2048',
+            title: 'Num Loop',
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
               fontFamily: themeController.theme.fontFamily ?? 'Nunito',

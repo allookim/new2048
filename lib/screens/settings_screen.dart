@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 
-// ── Warm fixed palette (테마 무관) ─────────────────────────────
-const _kBg     = Color(0xFFBE6833); // 따뜻한 호박색 배경
-const _kCard   = Color(0xFF9E5028); // 카드 배경
-const _kAccent = Color(0xFFF5A623); // 강조 (골드 앰버)
+// ── Warm fixed palette (메뉴와 동일 계열) ────────────────────
+const _kBg     = Color(0xFFD9A84D); // 메뉴 배경과 동일
+const _kCard   = Color(0xFFC08030); // 카드 (약간 어두운 브라운)
+const _kAccent = Color(0xFF7A4A00); // 아이콘 강조 (진한 브라운)
 const _kText   = Colors.white;
-const _kDim    = Color(0x99FFFFFF); // 보조 텍스트
-const _kLabel  = Color(0x66FFFFFF); // 섹션 레이블
+const _kDim    = Color(0xB3FFFFFF); // 보조 텍스트
+const _kLabel  = Color(0x80FFFFFF); // 섹션 레이블
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -158,7 +158,7 @@ class _ToggleTile extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: _kBg,
+            activeThumbColor: Colors.white,
             activeTrackColor: _kAccent,
             inactiveThumbColor: _kDim,
             inactiveTrackColor: Colors.white12,

@@ -62,7 +62,7 @@ class _SplashScreenState extends State<SplashScreen>
     final theme = context.watch<ThemeController>().theme;
 
     return Scaffold(
-      backgroundColor: theme.backgroundColor,
+      backgroundColor: const Color(0xFFEFEFEF),
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnim,
@@ -73,24 +73,6 @@ class _SplashScreenState extends State<SplashScreen>
               children: [
                 // 타일 모양 로고
                 _TileLogo(theme: theme),
-                const SizedBox(height: 24),
-                Text(
-                  '2048',
-                  style: TextStyle(
-                    fontSize: 64,
-                    fontWeight: FontWeight.bold,
-                    color: theme.textDark,
-                    letterSpacing: 4,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '타일을 합쳐서 2048을 만들어보세요',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: theme.textDark.withValues(alpha: 0.6),
-                  ),
-                ),
               ],
             ),
           ),
@@ -108,7 +90,12 @@ class _TileLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const values = [2, 8, 64, 2048];
+    const colors = [
+      Color(0xFFFDA72D),
+      Color(0xFF533281),
+      Color(0xFF399BFA),
+      Color(0xFFED5270),
+    ];
     const size = 52.0;
     const gap = 6.0;
 
@@ -118,12 +105,12 @@ class _TileLogo extends StatelessWidget {
       child: Wrap(
         spacing: gap,
         runSpacing: gap,
-        children: values.map((v) {
+        children: colors.map((c) {
           return Container(
             width: size,
             height: size,
             decoration: BoxDecoration(
-              color: theme.tileColor(v),
+              color: c,
               borderRadius: BorderRadius.circular(theme.tileRadius),
             ),
           );

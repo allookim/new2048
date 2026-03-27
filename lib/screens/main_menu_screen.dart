@@ -7,14 +7,14 @@ class MainMenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF6B4FA0),
+      backgroundColor: const Color(0xFFD9A84D),
       body: SafeArea(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                '2048',
+                'Num Loop',
                 style: TextStyle(
                   fontFamily: 'Nunito',
                   fontSize: 88,

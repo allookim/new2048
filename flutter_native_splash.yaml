@@ -1,0 +1,20 @@
+flutter_native_splash:
+  # 배경색
+  color: "#EFEFEF"
+
+  # 로고 이미지 경로 (실제 로고로 교체 시 이 파일만 교체하면 됨)
+  image: assets/images/splash_logo.png
+
+  # 다크모드도 동일하게
+  color_dark: "#EFEFEF"
+  image_dark: assets/images/splash_logo.png
+
+  # Android 12+ 전용 설정
+  android_12:
+    color: "#EFEFEF"
+    image: assets/images/splash_logo.png
+    color_dark: "#EFEFEF"
+    image_dark: assets/images/splash_logo.png
+
+  # 웹 지원 시
+  web: false
