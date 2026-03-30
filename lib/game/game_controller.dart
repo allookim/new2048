@@ -209,11 +209,6 @@ class GameController extends ChangeNotifier {
         _saveBestSpeedScore();
       }
 
-      // 스피드 모드 게임 오버 (보드 꽉 참)
-      if (isGameOver(_board)) {
-        _status = GameStatus.gameOver;
-        _speedTimer?.cancel();
-      }
     } else {
       _score += result.scoreGained;
 
@@ -232,12 +227,19 @@ class GameController extends ChangeNotifier {
 
       if (!_hasSeenWin && hasWon(_board)) {
         _status = GameStatus.won;
-      } else if (isGameOver(_board)) {
-        _status = GameStatus.gameOver;
+        _spawnTile();
+        notifyListeners();
+        return;
       }
     }
 
     _spawnTile();
+
+    if (isGameOver(_board)) {
+      _status = GameStatus.gameOver;
+      if (_gameMode == GameMode.speed) _speedTimer?.cancel();
+    }
+
     notifyListeners();
   }
 
