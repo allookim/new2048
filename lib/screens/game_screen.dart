@@ -65,6 +65,17 @@ class _GameScreenState extends State<GameScreen>
       backgroundColor: theme.backgroundColor,
       body: Stack(
         children: [
+          // ── Background image ──────────────────────────────
+          Positioned.fill(
+            child: Consumer<GameController>(
+              builder: (_, gc, __) {
+                final bg = gc.gameMode == GameMode.normalTest
+                    ? 'assets/images/bg_normal_test.png'
+                    : 'assets/images/bg_normal.png';
+                return Image.asset(bg, fit: BoxFit.cover);
+              },
+            ),
+          ),
           // ── Main content ──────────────────────────────────
           SafeArea(
             child: Padding(
