@@ -107,6 +107,7 @@ class _GameBoardState extends State<GameBoard>
                                 ? _CircleImageTile(
                                     asset: theme.tileBgAsset!,
                                     size: cs,
+                                    bgColor: theme.backgroundColor,
                                   )
                                 : Container(
                                     width: cs,
@@ -190,16 +191,36 @@ class _GameBoardState extends State<GameBoard>
 class _CircleImageTile extends StatelessWidget {
   final String asset;
   final double size;
-  const _CircleImageTile({required this.asset, required this.size});
+  final Color bgColor;
+  const _CircleImageTile({required this.asset, required this.size, required this.bgColor});
 
   @override
   Widget build(BuildContext context) {
-    return ClipOval(
-      child: SizedBox(
-        width: size,
-        height: size,
-        child: Image.asset(asset, fit: BoxFit.cover),
-      ),
+    return Stack(
+      children: [
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: bgColor,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.28),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+        ),
+        ClipOval(
+          child: SizedBox(
+            width: size,
+            height: size,
+            child: Image.asset(asset, fit: BoxFit.cover),
+          ),
+        ),
+      ],
     );
   }
 }
