@@ -19,7 +19,9 @@
       "Bash(start chrome:*)",
       "mcp__TalkToFigma__get_selection",
       "mcp__TalkToFigma__set_text_content",
-      "Bash(gh repo:*)"
+      "Bash(gh repo:*)",
+      "mcp__TalkToFigma__export_node_as_image",
+      "mcp__TalkToFigma__read_my_design"
     ]
   }
 }

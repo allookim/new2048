@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 import '../core/theme/theme_controller.dart';
@@ -228,7 +229,7 @@ class _TitleRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Hamburger — left aligned, 44x44 tap area
+          // Drawer icon — left aligned, 44x44 tap area
           GestureDetector(
             onTap: onMenu,
             behavior: HitTestBehavior.opaque,
@@ -237,15 +238,10 @@ class _TitleRow extends StatelessWidget {
               height: 44,
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _HamLine(),
-                    const SizedBox(height: 5),
-                    _HamLine(),
-                    const SizedBox(height: 5),
-                    _HamLine(),
-                  ],
+                child: SvgPicture.asset(
+                  'assets/images/ic_drawer.svg',
+                  width: 24,
+                  height: 24,
                 ),
               ),
             ),
@@ -272,18 +268,10 @@ class _TitleRow extends StatelessWidget {
               child: Align(
                 alignment: Alignment.centerRight,
                 child: isPauseIcon
-                    ? Container(
+                    ? SvgPicture.asset(
+                        'assets/images/ic_pause.svg',
                         width: 24,
                         height: 24,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 1.5),
-                        ),
-                        child: const Icon(
-                          Icons.pause_rounded,
-                          color: Colors.white,
-                          size: 14,
-                        ),
                       )
                     : const Icon(Icons.refresh_rounded,
                         color: Colors.white, size: 24),
@@ -749,10 +737,11 @@ class _FigmaScore extends StatelessWidget {
                 fontFamily: 'Nunito',
                 fontSize: 18,
                 fontWeight: FontWeight.w900,
-                color: Colors.white70,
+                color: Colors.white,
                 letterSpacing: -0.5,
               ),
             ),
+            const SizedBox(height: 8),
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
               transitionBuilder: (child, anim) => SlideTransition(
