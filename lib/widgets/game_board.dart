@@ -88,12 +88,8 @@ class _GameBoardState extends State<GameBoard>
                   width: boardWidth,
                   height: bh,
                   decoration: BoxDecoration(
-                    color: theme.tileBgAsset != null
-                        ? Colors.transparent
-                        : theme.boardColor,
-                    borderRadius: theme.tileBgAsset != null
-                        ? BorderRadius.zero
-                        : BorderRadius.circular(theme.boardRadius),
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(theme.boardRadius),
                   ),
                   child: Stack(
                     children: [

@@ -128,29 +128,15 @@ class _GameScreenState extends State<GameScreen>
             const TimerBar(),
             const _ComboBadgeRow(),
             const SizedBox(height: 8),
-            Expanded(
-              child: Center(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final size = constraints.maxWidth < constraints.maxHeight
-                        ? constraints.maxWidth
-                        : constraints.maxHeight;
-                    return SizedBox(
-                      width: size,
-                      height: size,
-                      child: const Stack(
-                        children: [
-                          GameBoard(),
-                          GameOverOverlay(),
-                          WinOverlay(),
-                          TimeUpOverlay(),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
+            const Stack(
+              children: [
+                GameBoard(),
+                GameOverOverlay(),
+                WinOverlay(),
+                TimeUpOverlay(),
+              ],
             ),
+            const Spacer(),
             const SizedBox(height: 12),
             const SkillBar(),
             if (isAndroid) const _HomeIndicator(),
