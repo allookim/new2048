@@ -63,6 +63,9 @@ class GameThemeData {
   /// 배경 이미지 에셋 경로 (null이면 게임 모드 기본 배경 사용)
   final String? backgroundAsset;
 
+  /// 배경 비디오 에셋 경로 (설정 시 backgroundAsset보다 우선 적용)
+  final String? backgroundVideoAsset;
+
   /// 원형 타일 스타일 (Sea 테마 등)
   final bool isCircleTile;
 
@@ -97,6 +100,7 @@ class GameThemeData {
     this.unlockCost,
     this.isPixelStyle = false,
     this.backgroundAsset,
+    this.backgroundVideoAsset,
     this.isCircleTile = false,
     this.tileBgAsset,
     this.tileFishAsset,

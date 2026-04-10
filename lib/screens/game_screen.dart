@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:video_player/video_player.dart';
 import '../core/theme/theme_controller.dart';
 import '../game/board_logic.dart';
 import '../game/game_controller.dart';
@@ -167,11 +168,13 @@ class _GameScreenState extends State<GameScreen>
       backgroundColor: theme.backgroundColor,
       body: Stack(
         children: [
-          // ── Background image ──────────────────────────────
+          // ── Background ────────────────────────────────────
           Positioned.fill(
             child: Consumer2<GameController, ThemeController>(
               builder: (_, gc, tc, __) {
-                // New Layout: 테마 배경 우선 사용
+                if (_useNewLayout && tc.theme.backgroundVideoAsset != null) {
+                  return _VideoBackground(asset: tc.theme.backgroundVideoAsset!);
+                }
                 if (_useNewLayout && tc.theme.backgroundAsset != null) {
                   return Image.asset(
                     tc.theme.backgroundAsset!,
@@ -765,6 +768,55 @@ class _FigmaScore extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+// ── Video Background ─────────────────────────────────────────
+
+class _VideoBackground extends StatefulWidget {
+  final String asset;
+  const _VideoBackground({required this.asset});
+
+  @override
+  State<_VideoBackground> createState() => _VideoBackgroundState();
+}
+
+class _VideoBackgroundState extends State<_VideoBackground> {
+  late VideoPlayerController _controller;
+  bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.asset(widget.asset)
+      ..setLooping(true)
+      ..setVolume(0)
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() => _initialized = true);
+          _controller.play();
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_initialized) return const SizedBox.shrink();
+    return FittedBox(
+      fit: BoxFit.cover,
+      clipBehavior: Clip.hardEdge,
+      child: SizedBox(
+        width: _controller.value.size.width,
+        height: _controller.value.size.height,
+        child: VideoPlayer(_controller),
+      ),
     );
   }
 }

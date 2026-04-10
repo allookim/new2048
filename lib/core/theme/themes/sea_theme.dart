@@ -20,6 +20,7 @@ const seaTheme = GameThemeData(
   tileRadius: 9999.0, // 원형 타일
   isCircleTile: true,
   backgroundAsset: 'assets/images/bg_sea.png',
+  backgroundVideoAsset: 'assets/images/bg_sea.mp4',
   tileBgAsset: 'assets/tiles/Tile-sea-bg.png',
   tileFishAsset: 'assets/tiles/Tile-sea-bg-fish-1.png',
   tileColors: {

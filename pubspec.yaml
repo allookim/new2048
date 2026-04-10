@@ -12,6 +12,7 @@ dependencies:
   provider: ^6.1.2
   shared_preferences: ^2.3.0
   uuid: ^4.4.0
+  video_player: ^2.11.1
 
 dev_dependencies:
   flutter_test:

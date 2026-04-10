@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2048 - animated edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #6b4fa0;
+    --board-bg: #4e3880;
+    --cell-bg: #5a4390;
+    --tile-2: #6dddd0;
+    --tile-4: #5bc9bc;
+    --tile-8: #f5a623;
+    --tile-16: #f08010;
+    --tile-32: #e05a2a;
+    --tile-64: #d0401a;
+    --tile-128: #edcf72;
+    --tile-256: #edcc61;
+    --tile-512: #edc850;
+    --tile-1024: #edc53f;
+    --tile-2048: #edc22e;
+    --tile-super: #3c3a32;
+    --text-light: #ffffff;
+    --text-dark: #776e65;
+    --gap: 12px;
+    --tile-size: 90px;
+    --radius: 14px;
+  }
+
+  body {
+    background: var(--bg);
+    font-family: 'Nunito', 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px 10px 40px;
+    user-select: none;
+    text-rendering: geometricPrecision;
+  }
+
+  /* Wavy decorations */
+  .wave-top, .wave-bottom {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    margin: 4px 0;
+  }
+  .wave-svg { width: 220px; }
+
+  /* Title */
+  .title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: calc(4 * var(--tile-size) + 3 * var(--gap) + 2 * var(--gap));
+    max-width: 100%;
+    margin-top: 32px;
+    margin-bottom: 16px;
+  }
+  .hamburger {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 4px;
+    flex-shrink: 0;
+    opacity: 0.8;
+    transition: opacity 0.15s;
+  }
+  .hamburger:hover { opacity: 1; }
+  .hamburger span {
+    display: block;
+    width: 20px;
+    height: 2.5px;
+    background: white;
+    border-radius: 2px;
+  }
+  /* new-game icon button — right side of title row */
+  .btn-new {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+    opacity: 0.8;
+    transition: opacity 0.15s;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn-new:hover { opacity: 1; }
+  h1 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 72px;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -2px;
+    line-height: 1;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 4px;
+    text-transform: lowercase;
+    margin-bottom: 18px;
+  }
+
+  /* Score row — centered, full board width */
+  .controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: calc(4 * var(--tile-size) + 3 * var(--gap) + 2 * var(--gap));
+    max-width: 100%;
+    margin-bottom: 14px;
+    gap: 12px;
+  }
+  .score-box {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    justify-content: center;
+  }
+  .score-item {
+    background: #4e3880;
+    border-radius: 10px;
+    padding: 8px 18px;
+    text-align: center;
+    flex: 0 0 40%;
+  }
+  .score-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 10px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .score-value {
+    font-family: 'Nunito', sans-serif;
+    font-size: 24px;
+    font-weight: 900;
+    color: white;
+  }
+
+  /* Board */
+  .board-wrap {
+    position: relative;
+    width: calc(4 * var(--tile-size) + 3 * var(--gap) + 2 * var(--gap));
+    max-width: 100%;
+  }
+  .board-bg {
+    background: var(--board-bg);
+    border-radius: 22px;
+    padding: var(--gap);
+    display: grid;
+    grid-template-columns: repeat(4, var(--tile-size));
+    grid-template-rows: repeat(4, var(--tile-size));
+    gap: var(--gap);
+    width: 100%;
+  }
+  .cell {
+    background: var(--cell-bg);
+    border-radius: var(--radius);
+    width: var(--tile-size);
+    height: var(--tile-size);
+  }
+
+  /* Tile layer */
+  .tile-layer {
+    position: absolute;
+    top: var(--gap);
+    left: var(--gap);
+    width: calc(4 * var(--tile-size) + 3 * var(--gap));
+    height: calc(4 * var(--tile-size) + 3 * var(--gap));
+    pointer-events: none;
+  }
+  .tile {
+    position: absolute;
+    width: var(--tile-size);
+    height: var(--tile-size);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    color: white;
+    transition: left 0.1s ease, top 0.1s ease;
+    will-change: left, top;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Bubble decoration on tile */
+  .tile::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 18px;
+    height: 18px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .tile-new {
+    animation: tileAppear 0.2s ease-out both;
+  }
+  .tile-merge {
+    animation: tileMerge 0.25s ease-out both;
+  }
+
+  @keyframes tileAppear {
+    0%   { transform: scale(0); opacity: 0; }
+    60%  { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes tileMerge {
+    0%   { transform: scale(1); }
+    30%  { transform: scale(1.18); }
+    100% { transform: scale(1); }
+  }
+
+  /* ── Number wiper ──────────────────────────────────────────
+     All tiles share one JS-driven angle so they move in perfect sync.
+     CSS handles only the merge-spring override.
+  ─────────────────────────────────────────────────────────── */
+  .tile-num {
+    display: inline-block;
+    line-height: 1;
+    transform-origin: center 120%;
+    will-change: transform;
+    /* flat drop shadow — offset downward only, no blur = crisp pixel shadow */
+    filter: drop-shadow(0px 4px 0px rgba(0,0,0,0.22));
+    /* force vector rendering path */
+    transform: rotate(0deg);
+  }
+
+  /* merge spring — JS adds/removes this class */
+  .tile-num.merging {
+    animation: mergeSpring 0.65s cubic-bezier(0.34, 1.7, 0.64, 1) both !important;
+  }
+
+  @keyframes mergeSpring {
+    0%   { transform: rotate(0deg)   scale(1);    }
+    18%  { transform: rotate(-20deg) scale(1.22); }
+    42%  { transform: rotate( 16deg) scale(0.88); }
+    62%  { transform: rotate( -7deg) scale(1.07); }
+    78%  { transform: rotate(  3deg) scale(0.97); }
+    90%  { transform: rotate( -1deg) scale(1.01); }
+    100% { transform: rotate(  0deg) scale(1);    }
+  }
+
+  /* Tile colors */
+  .tile[data-val="2"]    { background: #6dddd0; font-size: 56px; }
+  .tile[data-val="4"]    { background: #5bc9bc; font-size: 56px; }
+  .tile[data-val="8"]    { background: #f5a623; font-size: 56px; }
+  .tile[data-val="16"]   { background: #f08010; font-size: 46px; }
+  .tile[data-val="32"]   { background: #e05a2a; font-size: 46px; }
+  .tile[data-val="64"]   { background: #d0401a; font-size: 46px; }
+  .tile[data-val="128"]  { background: #edcf72; font-size: 36px; }
+  .tile[data-val="256"]  { background: #edcc61; font-size: 36px; }
+  .tile[data-val="512"]  { background: #edc850; font-size: 36px; }
+  .tile[data-val="1024"] { background: #edc53f; font-size: 28px; }
+  .tile[data-val="2048"] { background: #edc22e; font-size: 28px; }
+
+  /* Bottom section */
+  .bottom-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: calc(4 * var(--tile-size) + 3 * var(--gap) + 2 * var(--gap));
+    max-width: 100%;
+    margin-top: 18px;
+    gap: 16px;
+  }
+  .arrow-keys {
+    display: grid;
+    grid-template-columns: repeat(3, 44px);
+    grid-template-rows: repeat(2, 44px);
+    gap: 4px;
+  }
+  .arrow-key {
+    background: transparent;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: rgba(255,255,255,0.7);
+    transition: background 0.1s, border-color 0.1s;
+  }
+  .arrow-key:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); }
+  .arrow-key:active { background: rgba(255,255,255,0.2); }
+  .arrow-key svg { width: 20px; height: 20px; }
+  .key-up    { grid-column: 2; grid-row: 1; }
+  .key-left  { grid-column: 1; grid-row: 2; }
+  .key-down  { grid-column: 2; grid-row: 2; }
+  .key-right { grid-column: 3; grid-row: 2; }
+
+  .hint-text {
+    color: rgba(255,255,255,0.85);
+    font-size: 14px;
+    line-height: 1.55;
+    max-width: 210px;
+  }
+  .hint-text strong { font-weight: 800; color: white; }
+
+  /* Overlay */
+  .overlay {
+    display: none;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(78, 56, 128, 0.88);
+    border-radius: 10px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  .overlay.show { display: flex; }
+  .overlay-title {
+    font-size: 36px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 16px;
+  }
+  .overlay-btn {
+    background: #6dddd0;
+    color: #3a2a70;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  /* Score animation */
+  .score-pop {
+    position: fixed;
+    color: white;
+    font-size: 18px;
+    font-weight: 800;
+    pointer-events: none;
+    animation: scorePop 0.8s ease-out forwards;
+    z-index: 999;
+  }
+  @keyframes scorePop {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-40px); }
+  }
+
+  /* Wave SVG */
+  .wave-line {
+    fill: none;
+    stroke: rgba(255,255,255,0.35);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+
+  /* ── Side Drawer ─────────────────────────────────────────── */
+  .drawer-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+  }
+  .drawer-backdrop.open { display: block; }
+
+  .drawer {
+    position: fixed;
+    inset: 0;
+    background: #3a2870;
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-100%);
+    transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 0;
+  }
+  .drawer.open { transform: translateY(0); }
+
+  .drawer-header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 32px;
+    padding-bottom: 16px;
+  }
+  .drawer-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 72px;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -2px;
+    line-height: 1;
+  }
+  .drawer-close {
+    position: absolute;
+    right: calc((100vw - (4 * var(--tile-size) + 5 * var(--gap))) / 2);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s;
+    padding: 4px;
+    top: 42px;
+  }
+  .drawer-close:hover { color: white; }
+
+  .drawer-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 320px;
+    gap: 4px;
+  }
+
+  .drawer-section {
+    width: 100%;
+    padding: 8px 0;
+  }
+  .drawer-section-label {
+    font-family: 'Nunito', sans-serif;
+    font-size: 10px;
+    font-weight: 900;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .drawer-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+    margin: 12px 0;
+    width: 100%;
+  }
+
+  .drawer-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 14px 20px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: none;
+    background: transparent;
+    width: 100%;
+  }
+  .drawer-item:hover { background: rgba(255,255,255,0.08); }
+  .drawer-item.active { background: rgba(109,221,208,0.15); }
+
+.drawer-item-name {
+    font-family: 'Nunito', sans-serif;
+    font-size: 17px;
+    font-weight: 900;
+    color: white;
+    line-height: 1.2;
+  }
+  
+  
+  
+  
+
+  @media (max-width: 430px) {
+    :root {
+      --tile-size: 72px;
+      --gap: 10px;
+      --radius: 10px;
+    }
+    h1 { font-size: 54px; }
+    .board-bg {
+      grid-template-columns: repeat(4, var(--tile-size));
+      grid-template-rows: repeat(4, var(--tile-size));
+    }
+    .tile-layer {
+      width: calc(4 * var(--tile-size) + 3 * var(--gap));
+      height: calc(4 * var(--tile-size) + 3 * var(--gap));
+    }
+    .board-wrap { width: calc(4 * var(--tile-size) + 3 * var(--gap) + 2 * var(--gap)); }
+    .controls { max-width: calc(4 * var(--tile-size) + 3 * var(--gap) + 2 * var(--gap)); }
+    .bottom-section { max-width: calc(4 * var(--tile-size) + 3 * var(--gap) + 2 * var(--gap)); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Drawer backdrop -->
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+<!-- Side Drawer -->
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-title">2048</div>
+    <button class="drawer-close" id="drawerClose" aria-label="Close">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="drawer-body">
+    <div class="drawer-section">
+      <div class="drawer-section-label">Game Mode</div>
+      <button class="drawer-item active">
+        <div class="drawer-item-name">Normal</div>
+      </button>
+      <button class="drawer-item">
+        <div class="drawer-item-name">Item Mode</div>
+      </button>
+      <button class="drawer-item">
+        <div class="drawer-item-name">Speed Mode</div>
+      </button>
+    </div>
+
+    <div class="drawer-divider"></div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-label">Settings</div>
+      <button class="drawer-item">
+        <div class="drawer-item-name">Theme</div>
+      </button>
+      <button class="drawer-item">
+        <div class="drawer-item-name">Settings</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Title -->
+<div class="title-row">
+  <button class="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <h1>2048</h1>
+  <button class="btn-new" id="btnNew" aria-label="New game">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="1 4 1 10 7 10"/>
+      <path d="M3.51 15a9 9 0 1 0 .49-3.5"/>
+    </svg>
+  </button>
+</div>
+<!-- Controls -->
+<div class="controls">
+  <div class="score-box">
+    <div class="score-item">
+      <div class="score-label">SCORE</div>
+      <div class="score-value" id="score">0</div>
+    </div>
+    <div class="score-item">
+      <div class="score-label">BEST</div>
+      <div class="score-value" id="best">0</div>
+    </div>
+  </div>
+</div>
+
+<!-- Board -->
+<div class="board-wrap">
+  <div class="board-bg" id="boardBg"></div>
+  <div class="tile-layer" id="tileLayer"></div>
+  <div class="overlay" id="overlay">
+    <div class="overlay-title" id="overlayTitle">Game Over!</div>
+    <button class="overlay-btn" id="overlayBtn">Try Again</button>
+  </div>
+</div>
+
+<!-- Bottom -->
+<div class="bottom-section">
+  <div class="arrow-keys">
+    <div class="arrow-key key-up" data-dir="up">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="18 15 12 9 6 15"/>
+      </svg>
+    </div>
+    <div class="arrow-key key-left" data-dir="left">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </div>
+    <div class="arrow-key key-down" data-dir="down">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </div>
+    <div class="arrow-key key-right" data-dir="right">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </div>
+  </div>
+  <p class="hint-text">Combine the identical numbers and try to reach <strong>the 2048 animation</strong>!</p>
+</div>
+
+<script>
+const GRID = 4;
+let board, score, best, moving;
+
+const tileLayer = document.getElementById('tileLayer');
+const boardBg = document.getElementById('boardBg');
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+const overlay = document.getElementById('overlay');
+const overlayTitle = document.getElementById('overlayTitle');
+
+// Build background cells
+for (let i = 0; i < GRID * GRID; i++) {
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  boardBg.appendChild(cell);
+}
+
+function getTileSize() {
+  const style = getComputedStyle(document.documentElement);
+  return parseInt(style.getPropertyValue('--tile-size')) || 90;
+}
+function getGap() {
+  const style = getComputedStyle(document.documentElement);
+  return parseInt(style.getPropertyValue('--gap')) || 12;
+}
+
+function posToXY(row, col) {
+  const s = getTileSize(), g = getGap();
+  return { x: col * (s + g), y: row * (s + g) };
+}
+
+function createTileEl(val, row, col, isNew, isMerge) {
+  const el = document.createElement('div');
+  el.className = 'tile';
+  if (isNew) el.classList.add('tile-new');
+  if (isMerge) el.classList.add('tile-merge');
+  el.dataset.val = val;
+
+  el.innerHTML = `<span class="tile-num">${val}</span>`;
+
+  const {x, y} = posToXY(row, col);
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  tileLayer.appendChild(el);
+
+  // Merge: spring animation, then wiper resumes automatically
+  if (isMerge) {
+    const span = el.querySelector('.tile-num');
+    setTimeout(() => {
+      span.classList.add('merging');
+      span.addEventListener('animationend', () => {
+        span.classList.remove('merging');
+      }, { once: true });
+    }, 30);
+  }
+
+  return el;
+}
+
+// ── Shared wiper loop ───────────────────────────────────────
+// All .tile-num elements get the exact same angle every frame.
+// Angle: ±7deg, eased with sine so it decelerates at each end (wiper feel).
+const WIPER_AMP = 7;       // degrees, half-swing
+const WIPER_PERIOD = 1800; // ms for one full back-and-forth
+
+function wiperLoop(ts) {
+  // Map time → angle: sine goes -1..1, multiply by amplitude
+  const t = (ts % WIPER_PERIOD) / WIPER_PERIOD; // 0..1
+  const angle = WIPER_AMP * Math.sin(2 * Math.PI * t);
+  document.querySelectorAll('.tile-num:not(.merging)').forEach(span => {
+    span.style.transform = `rotate(${angle.toFixed(3)}deg)`;
+  });
+  requestAnimationFrame(wiperLoop);
+}
+requestAnimationFrame(wiperLoop);
+
+function initBoard() {
+  board = Array.from({length: GRID}, () => Array(GRID).fill(0));
+  score = 0;
+  moving = false;
+  tileLayer.innerHTML = '';
+  overlay.classList.remove('show');
+  updateScore();
+  addRandom();
+  addRandom();
+  renderAll();
+}
+
+function addRandom() {
+  const empties = [];
+  for (let r = 0; r < GRID; r++)
+    for (let c = 0; c < GRID; c++)
+      if (!board[r][c]) empties.push([r, c]);
+  if (!empties.length) return false;
+  const [r, c] = empties[Math.floor(Math.random() * empties.length)];
+  board[r][c] = Math.random() < 0.9 ? 2 : 4;
+  return {r, c, val: board[r][c]};
+}
+
+function renderAll(newTile, mergeTiles) {
+  tileLayer.innerHTML = '';
+  for (let r = 0; r < GRID; r++) {
+    for (let c = 0; c < GRID; c++) {
+      if (!board[r][c]) continue;
+      const isNew = newTile && newTile.r === r && newTile.c === c;
+      const isMerge = mergeTiles && mergeTiles.some(m => m.r === r && m.c === c);
+      createTileEl(board[r][c], r, c, isNew, isMerge);
+    }
+  }
+}
+
+function updateScore() {
+  scoreEl.textContent = score;
+  const b = parseInt(localStorage.getItem('2048best') || '0');
+  if (score > b) { localStorage.setItem('2048best', score); }
+  best = Math.max(score, b);
+  bestEl.textContent = best;
+}
+
+function showScorePop(points, el) {
+  const pop = document.createElement('div');
+  pop.className = 'score-pop';
+  pop.textContent = '+' + points;
+  const rect = el.getBoundingClientRect();
+  pop.style.left = (rect.left + rect.width / 2 - 20) + 'px';
+  pop.style.top = (rect.top - 10) + 'px';
+  document.body.appendChild(pop);
+  setTimeout(() => pop.remove(), 800);
+}
+
+// Move logic
+function slide(row) {
+  let arr = row.filter(v => v);
+  let merged = [];
+  let mergedPositions = [];
+  for (let i = 0; i < arr.length - 1; i++) {
+    if (arr[i] === arr[i + 1]) {
+      arr[i] *= 2;
+      score += arr[i];
+      merged.push(arr[i]);
+      arr.splice(i + 1, 1);
+      mergedPositions.push(i);
+    }
+  }
+  while (arr.length < GRID) arr.push(0);
+  return { arr, merged, mergedPositions };
+}
+
+function move(dir) {
+  if (moving) return;
+  let changed = false;
+  let allMergedPositions = [];
+
+  const rotate = (b) => b[0].map((_, c) => b.map(r => r[c]).reverse());
+  const rotateBack = (b) => b[0].map((_, c) => b.map(r => r[r.length - 1 - c]));
+
+  let b = board.map(r => [...r]);
+
+  // Normalize: always slide left
+  if (dir === 'right') b = b.map(r => [...r].reverse());
+  if (dir === 'up') b = rotateBack(b);
+  if (dir === 'down') b = rotate(b);
+
+  for (let r = 0; r < GRID; r++) {
+    const {arr, mergedPositions} = slide(b[r]);
+    for (let c = 0; c < GRID; c++) {
+      if (b[r][c] !== arr[c]) changed = true;
+    }
+    b[r] = arr;
+    mergedPositions.forEach(mc => {
+      if (dir === 'right') allMergedPositions.push({r, c: GRID - 1 - mc});
+      else if (dir === 'up') { /* handled after rotation */ }
+      else allMergedPositions.push({r, c: mc});
+    });
+  }
+
+  // Restore orientation
+  if (dir === 'right') b = b.map(r => [...r].reverse());
+  if (dir === 'up') b = rotate(b);
+  if (dir === 'down') b = rotateBack(b);
+
+  if (!changed) return;
+
+  board = b;
+  updateScore();
+
+  const newTileInfo = addRandom();
+  renderAll(newTileInfo || null, allMergedPositions);
+
+  if (isGameOver()) {
+    setTimeout(() => {
+      overlayTitle.textContent = 'Game Over!';
+      overlay.classList.add('show');
+    }, 300);
+  }
+}
+
+function isGameOver() {
+  for (let r = 0; r < GRID; r++)
+    for (let c = 0; c < GRID; c++) {
+      if (!board[r][c]) return false;
+      if (c < GRID - 1 && board[r][c] === board[r][c+1]) return false;
+      if (r < GRID - 1 && board[r][c] === board[r+1][c]) return false;
+    }
+  return true;
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  const map = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+  if (map[e.key]) { e.preventDefault(); move(map[e.key]); }
+});
+
+// Arrow buttons
+document.querySelectorAll('.arrow-key').forEach(btn => {
+  btn.addEventListener('click', () => move(btn.dataset.dir));
+});
+
+// Touch swipe
+let tx, ty;
+document.addEventListener('touchstart', e => {
+  tx = e.touches[0].clientX;
+  ty = e.touches[0].clientY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - tx;
+  const dy = e.changedTouches[0].clientY - ty;
+  if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+  if (Math.abs(dx) > Math.abs(dy)) move(dx > 0 ? 'right' : 'left');
+  else move(dy > 0 ? 'down' : 'up');
+});
+
+document.getElementById('btnNew').addEventListener('click', initBoard);
+document.getElementById('overlayBtn').addEventListener('click', initBoard);
+
+// Drawer
+const drawer = document.getElementById('drawer');
+const drawerBackdrop = document.getElementById('drawerBackdrop');
+const drawerClose = document.getElementById('drawerClose');
+const hamburger = document.querySelector('.hamburger');
+
+function openDrawer() {
+  drawer.classList.add('open');
+  drawerBackdrop.classList.add('open');
+}
+function closeDrawer() {
+  drawer.classList.remove('open');
+  drawerBackdrop.classList.remove('open');
+}
+hamburger.addEventListener('click', openDrawer);
+drawerClose.addEventListener('click', closeDrawer);
+drawerBackdrop.addEventListener('click', closeDrawer);
+
+// Init
+best = parseInt(localStorage.getItem('2048best') || '0');
+bestEl.textContent = best;
+initBoard();
+</script>
+</body>
+</html>
