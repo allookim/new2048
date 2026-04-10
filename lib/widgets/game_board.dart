@@ -183,7 +183,7 @@ class _GameBoardState extends State<GameBoard>
   }
 }
 
-// 원형 마스크에 이미지 + 외부 그림자
+// 원형 마스크에 이미지 (그림자는 이미지에 포함)
 class _CircleImageTile extends StatelessWidget {
   final String asset;
   final double size;
@@ -192,31 +192,10 @@ class _CircleImageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: bgColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.28),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-        ),
-        ClipOval(
-          child: SizedBox(
-            width: size,
-            height: size,
-            child: Image.asset(asset, fit: BoxFit.cover),
-          ),
-        ),
-      ],
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Image.asset(asset, fit: BoxFit.contain),
     );
   }
 }
