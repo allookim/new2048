@@ -45,6 +45,25 @@ class _GameScreenState extends State<GameScreen>
         curve: Curves.easeInOut,
       ),
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) => _precacheTileImages());
+  }
+
+  void _precacheTileImages() {
+    const assets = [
+      'assets/tiles/Tile-sea-bg.png',
+      'assets/tiles/Tile-sea-bg-fish-1.png',
+      'assets/tiles/Tile-sea-bg-fish-2.png',
+      'assets/tiles/Tile-sea-bg-fish-3.png',
+      'assets/tiles/Tile-sea-bg-fish-4.png',
+      'assets/tiles/Tile-sea-bg-fish-5.png',
+      'assets/tiles/Tile-sea-bg-fish-6.png',
+      'assets/tiles/Tile-sea-bg-fish-7.png',
+      'assets/tiles/Tile-sea-bg-fish-8.png',
+      'assets/tiles/Tile-sea-bg-fish-9.png',
+    ];
+    for (final asset in assets) {
+      precacheImage(AssetImage(asset), context);
+    }
   }
 
   @override
