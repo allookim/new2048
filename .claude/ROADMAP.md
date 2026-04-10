@@ -53,11 +53,29 @@
 
 ## Phase 4 — 서버 & 소셜 (윈도우 가능)
 
-- [ ] Firebase 프로젝트 셋업
-- [ ] 랭킹 데이터 구조 설계
-- [ ] Firestore 랭킹 저장/조회
-- [ ] Game Center 연동 준비
-- [ ] Apple 로그인 준비
+> **DB 선택: Supabase** (Postgres 기반, Flutter 공식 지원, SQL 랭킹 쿼리 적합)
+> **분석/푸시: Firebase** (Crashlytics + Analytics + FCM) — Supabase와 병행 사용, 충돌 없음
+> 역할 분리: Supabase = DB·인증·랭킹 / Firebase = 크래시·분석·푸시
+
+**Supabase 셋업**
+- [ ] Supabase 프로젝트 생성
+- [ ] `users` 테이블 설계 (id, apple_id, nickname, created_at)
+- [ ] `scores` 테이블 설계 (id, user_id, mode, score, created_at)
+- [ ] Flutter `supabase_flutter` 패키지 연동
+- [ ] 랭킹 조회 쿼리 구현 (모드별 TOP 100)
+
+**인증**
+- [ ] Sign in with Apple 연동 (Supabase Auth)
+- [ ] 익명 게스트 플레이 지원 여부 결정
+
+**Firebase (분석·푸시, 추후 추가)**
+- [ ] Firebase 프로젝트 생성
+- [ ] Crashlytics 연동 (앱 크래시 자동 기록)
+- [ ] Analytics 연동 (유저 행동, 모드별 플레이 통계)
+- [ ] FCM 푸시 알림 (필요 시)
+
+**소셜**
+- [ ] Game Center 연동 준비 (iOS 전용, 맥 필요)
 
 ---
 
