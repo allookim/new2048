@@ -158,7 +158,6 @@ class _ToggleTile extends StatelessWidget {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeThumbColor: Colors.white,
             activeTrackColor: _kAccent,
             inactiveThumbColor: _kDim,
             inactiveTrackColor: Colors.white12,
