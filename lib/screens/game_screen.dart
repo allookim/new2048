@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -112,7 +111,7 @@ class _GameScreenState extends State<GameScreen>
   }
 
   Widget _buildFigmaLayout() {
-    final isAndroid = !kIsWeb && Platform.isAndroid;
+    final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
     return SafeArea(
       bottom: isAndroid,
       child: Padding(
