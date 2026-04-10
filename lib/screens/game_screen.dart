@@ -242,8 +242,8 @@ class _TitleRow extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: SvgPicture.asset(
                   'assets/images/ic_drawer.svg',
-                  width: 24,
-                  height: 24,
+                  width: 32,
+                  height: 32,
                 ),
               ),
             ),
@@ -272,8 +272,8 @@ class _TitleRow extends StatelessWidget {
                 child: isPauseIcon
                     ? SvgPicture.asset(
                         'assets/images/ic_pause.svg',
-                        width: 24,
-                        height: 24,
+                        width: 32,
+                        height: 32,
                       )
                     : const Icon(Icons.refresh_rounded,
                         color: Colors.white, size: 24),
