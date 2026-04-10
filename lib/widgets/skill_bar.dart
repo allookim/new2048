@@ -37,41 +37,48 @@ class SkillBar extends StatelessWidget {
                       height: 42,
                       decoration: BoxDecoration(
                         color: isActive
-                            ? theme.buttonColor
+                            ? const Color(0xFF006494)
                             : canUse
-                                ? theme.boardColor
-                                : theme.boardColor.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(theme.tileRadius),
-                        border: isActive
-                            ? Border.all(color: theme.textDark, width: 2)
-                            : null,
+                                ? Colors.white
+                                : Colors.white.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(999),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(skill.icon, size: 18, color: Colors.white),
-                          const SizedBox(width: 4),
+                          Icon(
+                            skill.icon,
+                            size: 18,
+                            color: isActive ? Colors.white : const Color(0xFF006494),
+                          ),
+                          const SizedBox(width: 6),
                           Text(
                             skill.name,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                            style: TextStyle(
+                              fontFamily: 'Nunito',
+                              fontSize: 17,
+                              fontWeight: FontWeight.w800,
+                              color: isActive ? Colors.white : const Color(0xFF006494),
+                              letterSpacing: -0.51,
                             ),
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.3),
-                              borderRadius: BorderRadius.circular(8),
+                              color: isActive
+                                  ? Colors.white.withValues(alpha: 0.3)
+                                  : const Color(0xFF006494),
+                              borderRadius: BorderRadius.circular(50),
                             ),
                             child: Text(
                               '$remaining',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                              style: TextStyle(
+                                fontFamily: 'Nunito',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                color: isActive ? Colors.white : Colors.white,
+                                letterSpacing: -0.42,
                               ),
                             ),
                           ),

@@ -27,7 +27,7 @@ class _GameScreenState extends State<GameScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _drawerController;
   late Animation<Offset> _drawerSlide;
-  bool _useNewLayout = false;
+  bool _useNewLayout = true;
 
   @override
   void initState() {
@@ -137,20 +137,18 @@ class _GameScreenState extends State<GameScreen>
                 ),
               ),
               // Board — starts at 35% of screen height
+              // Board
               Positioned(
                 top: boardTop, left: 0, right: 0,
-                child: const Stack(
-                  children: [
-                    GameBoard(),
-                    GameOverOverlay(),
-                    WinOverlay(),
-                    TimeUpOverlay(),
-                  ],
-                ),
+                child: const GameBoard(),
               ),
+              // Overlays — full screen
+              const Positioned.fill(child: GameOverOverlay()),
+              const Positioned.fill(child: WinOverlay()),
+              const Positioned.fill(child: TimeUpOverlay()),
               // SkillBar — bottom
               Positioned(
-                bottom: isAndroid ? 42 : 16, left: 24, right: 24,
+                bottom: 32, left: 24, right: 24,
                 child: const SkillBar(),
               ),
               if (isAndroid)
@@ -531,74 +529,24 @@ class _FullScreenDrawer extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Game Mode
                       _MenuItem(
                         label: 'Normal',
                         isActive: currentMode == GameMode.normal,
-                        onTap: () {
-                          gc.startGame(GameMode.normal);
-                          onClose();
-                        },
-                      ),
-                      _MenuItem(
-                        label: 'Normal Test',
-                        isActive: currentMode == GameMode.normalTest,
-                        onTap: () {
-                          gc.startGame(GameMode.normalTest);
-                          onClose();
-                        },
+                        onTap: () => onSelectNewLayout(GameMode.normal),
                       ),
                       _MenuItem(
                         label: 'Item Mode',
                         isActive: currentMode == GameMode.item,
-                        onTap: () {
-                          gc.startGame(GameMode.item);
-                          onClose();
-                        },
+                        onTap: () => onSelectNewLayout(GameMode.item),
                       ),
                       _MenuItem(
                         label: 'Speed Mode',
                         isActive: currentMode == GameMode.speed,
-                        onTap: () {
-                          gc.startGame(GameMode.speed);
-                          onClose();
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      Container(height: 1, color: Colors.white12),
-                      const SizedBox(height: 12),
-                      // ── New Layout ──
-                      const Text(
-                        'NEW LAYOUT',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontFamily: 'Nunito',
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white38,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      _MenuItem(
-                        label: 'Normal ✦',
-                        isActive: useNewLayout && currentMode == GameMode.normal,
-                        onTap: () => onSelectNewLayout(GameMode.normal),
-                      ),
-                      _MenuItem(
-                        label: 'Item ✦',
-                        isActive: useNewLayout && currentMode == GameMode.item,
-                        onTap: () => onSelectNewLayout(GameMode.item),
-                      ),
-                      _MenuItem(
-                        label: 'Speed ✦',
-                        isActive: useNewLayout && currentMode == GameMode.speed,
                         onTap: () => onSelectNewLayout(GameMode.speed),
                       ),
                       const SizedBox(height: 12),
                       Container(height: 1, color: Colors.white12),
                       const SizedBox(height: 12),
-                      // Settings
                       _MenuItem(
                         label: 'Theme',
                         onTap: () {

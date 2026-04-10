@@ -3,12 +3,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'game_theme_data.dart';
 import 'theme_registry.dart';
 import 'themes/classic_theme.dart';
+import 'themes/sea_theme.dart';
 
 class ThemeController extends ChangeNotifier {
   static const String _themeKey = 'active_theme';
 
-  GameThemeData _currentTheme = classicTheme;
-  String _currentThemeId = 'classic';
+  GameThemeData _currentTheme = seaTheme;
+  String _currentThemeId = 'sea';
   final Set<String> _unlockedThemes = {'classic', 'dark_neon', 'pixel', 'basic', 'sea'};
 
   GameThemeData get theme => _currentTheme;

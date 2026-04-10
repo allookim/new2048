@@ -58,10 +58,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
             opacity: visible ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 200),
             child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xE0100A36),
-                borderRadius: BorderRadius.circular(16),
-              ),
+              color: const Color(0xE0100A36),
               child: AnimatedBuilder(
                 animation: _ctrl,
                 builder: (context, child) => Opacity(
