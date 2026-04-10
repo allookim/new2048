@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -28,7 +29,7 @@ class _GameScreenState extends State<GameScreen>
   late AnimationController _drawerController;
   late Animation<Offset> _drawerSlide;
   late AnimationController _pauseController;
-  late Animation<Offset> _pauseSlide;
+  late Animation<double> _pauseFade;
   bool _useNewLayout = true;
 
   @override
@@ -45,12 +46,9 @@ class _GameScreenState extends State<GameScreen>
 
     _pauseController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 320),
+      duration: const Duration(milliseconds: 250),
     );
-    _pauseSlide = Tween<Offset>(
-      begin: const Offset(1, 0),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _pauseController, curve: Curves.easeInOut));
+    _pauseFade = CurvedAnimation(parent: _pauseController, curve: Curves.easeOut);
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _precacheTileImages());
   }
@@ -235,21 +233,25 @@ class _GameScreenState extends State<GameScreen>
 
           // ── Pause menu ────────────────────────────────────
           AnimatedBuilder(
-            animation: _pauseController,
+            animation: _pauseFade,
             builder: (context, _) {
-              if (_pauseController.value == 0) return const SizedBox.shrink();
-              return Stack(
-                children: [
-                  GestureDetector(
-                    onTap: _closePauseMenu,
-                    child: Container(
-                      color: Colors.black.withValues(
-                          alpha: 0.4 * _pauseController.value),
+              if (_pauseFade.value == 0) return const SizedBox.shrink();
+              return FadeTransition(
+                opacity: _pauseFade,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Blur + dim
+                    BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: 0.6),
+                      ),
                     ),
-                  ),
-                  ClipRect(
-                    child: SlideTransition(
-                      position: _pauseSlide,
+                    // Menu content
+                    GestureDetector(
+                      onTap: _closePauseMenu,
+                      behavior: HitTestBehavior.opaque,
                       child: _PauseMenu(
                         onResume: _closePauseMenu,
                         onRestart: () {
@@ -258,8 +260,8 @@ class _GameScreenState extends State<GameScreen>
                         },
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               );
             },
           ),
@@ -868,7 +870,7 @@ class _PauseMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFFD9A84D),
+      color: Colors.transparent,
       child: SafeArea(
         child: Column(
           children: [
@@ -893,20 +895,45 @@ class _PauseMenu extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _MenuItem(
-                        label: 'Play game',
-                        onTap: onResume,
-                      ),
-                      _MenuItem(
-                        label: 'Restart game',
-                        onTap: onRestart,
-                      ),
+                      _PauseMenuItem(label: 'Play game', onTap: onResume),
+                      _PauseMenuItem(label: 'Restart game', onTap: onRestart),
                     ],
                   ),
                 ),
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PauseMenuItem extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _PauseMenuItem({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 36,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+            ),
+          ),
         ),
       ),
     );
