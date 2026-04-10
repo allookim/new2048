@@ -222,65 +222,76 @@ class _TitleRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gc = context.read<GameController>();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // Hamburger
-        GestureDetector(
-          onTap: onMenu,
-          behavior: HitTestBehavior.opaque,
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _HamLine(),
-                const SizedBox(height: 5),
-                _HamLine(),
-                const SizedBox(height: 5),
-                _HamLine(),
-              ],
+    return SizedBox(
+      height: 44,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Hamburger — left aligned, 44x44 tap area
+          GestureDetector(
+            onTap: onMenu,
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _HamLine(),
+                    const SizedBox(height: 5),
+                    _HamLine(),
+                    const SizedBox(height: 5),
+                    _HamLine(),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-        // Title
-        const Text(
-          'Num Loop',
-          style: TextStyle(
-            fontFamily: 'Nunito',
-            fontSize: 40,
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-            letterSpacing: -2,
-            height: 1,
+          // Title
+          const Text(
+            'Num Loop',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 40,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -2,
+              height: 1,
+            ),
           ),
-        ),
-        // Right icon: pause (new layout) or refresh (original)
-        GestureDetector(
-          onTap: gc.newGame,
-          behavior: HitTestBehavior.opaque,
-          child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: isPauseIcon
-                ? Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: const Icon(
-                      Icons.pause_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  )
-                : const Icon(Icons.refresh_rounded,
-                    color: Colors.white, size: 38),
+          // Right icon — right aligned, 44x44 tap area
+          GestureDetector(
+            onTap: gc.newGame,
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: isPauseIcon
+                    ? Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 1.5),
+                        ),
+                        child: const Icon(
+                          Icons.pause_rounded,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                      )
+                    : const Icon(Icons.refresh_rounded,
+                        color: Colors.white, size: 24),
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
