@@ -195,16 +195,18 @@ class _GameScreenState extends State<GameScreen>
           _useNewLayout ? _buildFigmaLayout() : _buildOriginalLayout(),
 
             // ── Full-screen top-sliding drawer ────────────────
-            SlideTransition(
-              position: _drawerSlide,
-              child: _FullScreenDrawer(
-                onClose: _closeDrawer,
-                useNewLayout: _useNewLayout,
-                onSelectNewLayout: (mode) {
-                  setState(() => _useNewLayout = true);
-                  context.read<GameController>().startGame(mode);
-                  _closeDrawer();
-                },
+            ClipRect(
+              child: SlideTransition(
+                position: _drawerSlide,
+                child: _FullScreenDrawer(
+                  onClose: _closeDrawer,
+                  useNewLayout: _useNewLayout,
+                  onSelectNewLayout: (mode) {
+                    setState(() => _useNewLayout = true);
+                    context.read<GameController>().startGame(mode);
+                    _closeDrawer();
+                  },
+                ),
               ),
             ),
           ],
