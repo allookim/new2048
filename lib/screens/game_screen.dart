@@ -37,7 +37,7 @@ class _GameScreenState extends State<GameScreen>
       duration: const Duration(milliseconds: 320),
     );
     _drawerSlide = Tween<Offset>(
-      begin: const Offset(0, -1),
+      begin: const Offset(-1, 0),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
@@ -116,33 +116,51 @@ class _GameScreenState extends State<GameScreen>
     final isAndroid = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
     return SafeArea(
       bottom: isAndroid,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 8),
-            _TitleRow(onMenu: _openDrawer, isPauseIcon: true),
-            const SizedBox(height: 26),
-            const _FigmaScore(),
-            const TimerBar(),
-            const _ComboBadgeRow(),
-            const SizedBox(height: 8),
-            const Stack(
-              children: [
-                GameBoard(),
-                GameOverOverlay(),
-                WinOverlay(),
-                TimeUpOverlay(),
-              ],
-            ),
-            const Spacer(),
-            const SizedBox(height: 12),
-            const SkillBar(),
-            if (isAndroid) const _HomeIndicator(),
-            const SizedBox(height: 8),
-          ],
-        ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final boardTop = constraints.maxHeight * 0.35;
+          return Stack(
+            children: [
+              // Header & score — top
+              Positioned(
+                top: 0, left: 24, right: 24,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    _TitleRow(onMenu: _openDrawer, isPauseIcon: true),
+                    const SizedBox(height: 26),
+                    const _FigmaScore(),
+                    const TimerBar(),
+                    const _ComboBadgeRow(),
+                  ],
+                ),
+              ),
+              // Board — starts at 35% of screen height
+              Positioned(
+                top: boardTop, left: 0, right: 0,
+                child: const Stack(
+                  children: [
+                    GameBoard(),
+                    GameOverOverlay(),
+                    WinOverlay(),
+                    TimeUpOverlay(),
+                  ],
+                ),
+              ),
+              // SkillBar — bottom
+              Positioned(
+                bottom: isAndroid ? 42 : 16, left: 24, right: 24,
+                child: const SkillBar(),
+              ),
+              if (isAndroid)
+                const Positioned(
+                  bottom: 0, left: 0, right: 0,
+                  child: _HomeIndicator(),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -180,20 +198,37 @@ class _GameScreenState extends State<GameScreen>
           // ── Main content ──────────────────────────────────
           _useNewLayout ? _buildFigmaLayout() : _buildOriginalLayout(),
 
-            // ── Full-screen top-sliding drawer ────────────────
-            ClipRect(
-              child: SlideTransition(
-                position: _drawerSlide,
-                child: _FullScreenDrawer(
-                  onClose: _closeDrawer,
-                  useNewLayout: _useNewLayout,
-                  onSelectNewLayout: (mode) {
-                    setState(() => _useNewLayout = true);
-                    context.read<GameController>().startGame(mode);
-                    _closeDrawer();
-                  },
-                ),
-              ),
+            // ── Left-side drawer ──────────────────────────────
+            AnimatedBuilder(
+              animation: _drawerController,
+              builder: (context, _) {
+                if (_drawerController.value == 0) return const SizedBox.shrink();
+                return Stack(
+                  children: [
+                    // Dim overlay
+                    GestureDetector(
+                      onTap: _closeDrawer,
+                      child: Container(
+                        color: Colors.black.withValues(
+                            alpha: 0.4 * _drawerController.value),
+                      ),
+                    ),
+                    // Drawer panel
+                    SlideTransition(
+                      position: _drawerSlide,
+                      child: _FullScreenDrawer(
+                        onClose: _closeDrawer,
+                        useNewLayout: _useNewLayout,
+                        onSelectNewLayout: (mode) {
+                          setState(() => _useNewLayout = true);
+                          context.read<GameController>().startGame(mode);
+                          _closeDrawer();
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ],
         ),

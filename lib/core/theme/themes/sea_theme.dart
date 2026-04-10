@@ -14,7 +14,7 @@ const seaTheme = GameThemeData(
   buttonColor: Color(0xFF006494),
   winOverlayColor: Color(0xFF006494),
   overlayTextColor: Color(0xFFFFFFFF),
-  boardPadding: 10.0,
+  boardPadding: 14.0,
   gap: 10.0,
   boardRadius: 16.0,
   tileRadius: 9999.0, // 원형 타일
