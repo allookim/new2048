@@ -130,7 +130,7 @@ class _TileWidgetState extends State<TileWidget>
                   height: widget.size,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: theme.backgroundColor,
+                    color: const Color(0xFF01578E),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withValues(alpha: 0.3),

@@ -107,7 +107,7 @@ class _GameBoardState extends State<GameBoard>
                                 ? _CircleImageTile(
                                     asset: theme.tileBgAsset!,
                                     size: cs,
-                                    bgColor: theme.backgroundColor,
+                                    bgColor: const Color(0xFF01578E),
                                   )
                                 : Container(
                                     width: cs,
