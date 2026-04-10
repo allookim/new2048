@@ -7,6 +7,7 @@ enum TileType {
   bomb,   // 폭탄 타일: 합쳐질 때 주변 타일 제거
   ice,    // 얼음 타일: 이동은 되지만 합쳐지지 않음
   wild,   // 와일드 타일: 어떤 값과도 합쳐짐
+  lock,   // 잠금 타일: 위치 고정 + 머지 불가 (Remove 스킬로만 제거)
 }
 
 class Tile {

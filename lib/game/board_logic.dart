@@ -7,73 +7,96 @@ enum Direction { left, right, up, down }
 /// 한 줄을 왼쪽으로 슬라이드·머지.
 /// 특수 타일 규칙:
 ///   ice  : 이동은 되지만 머지 불가
-///   wild : 어떤 값과도 머지 가능 (ice 제외)
+///   lock : 위치 고정(벽 역할) + 머지 불가
+///   wild : 어떤 값과도 머지 가능 (ice/lock 제외)
 ///   golden: 머지 점수 ×2
 ///   bomb : 머지 후 주변 타일 폭발 (GameController에서 처리)
 ({List<Tile?> line, int score, int mergeCount}) slideLineLeft(List<Tile?> line) {
-  final tiles = line.whereType<Tile>().toList();
-  int score = 0;
-  int mergeCount = 0;
-  int i = 0;
+  final result = List<Tile?>.filled(line.length, null);
+  int totalScore = 0;
+  int totalMergeCount = 0;
 
-  while (i < tiles.length - 1) {
-    final a = tiles[i];
-    final b = tiles[i + 1];
-
-    // 얼음 타일은 머지 불가
-    if (a.tileType == TileType.ice || b.tileType == TileType.ice) {
-      i++;
-      continue;
+  // Lock 타일 위치를 벽으로 고정, 세그먼트 경계 계산
+  final walls = [-1];
+  for (int i = 0; i < line.length; i++) {
+    if (line[i]?.tileType == TileType.lock) {
+      result[i] = line[i]; // 제자리 고정
+      walls.add(i);
     }
+  }
+  walls.add(line.length);
 
-    final aWild = a.tileType == TileType.wild;
-    final bWild = b.tileType == TileType.wild;
-    final canMerge = aWild || bWild || a.value == b.value;
+  // 각 세그먼트를 독립적으로 슬라이드·머지
+  for (int w = 0; w < walls.length - 1; w++) {
+    final segStart = walls[w] + 1;
+    final segEnd = walls[w + 1];
+    if (segStart >= segEnd) continue;
 
-    if (canMerge) {
-      // 합쳐진 값 계산
-      int mergedValue;
-      if (aWild && bWild) {
-        mergedValue = max(a.value, b.value) * 2;
-      } else if (aWild) {
-        mergedValue = b.value * 2;
-      } else if (bWild) {
-        mergedValue = a.value * 2;
+    final tiles = <Tile>[];
+    for (int i = segStart; i < segEnd; i++) {
+      if (line[i] != null && line[i]!.tileType != TileType.lock) {
+        tiles.add(line[i]!);
+      }
+    }
+    if (tiles.isEmpty) continue;
+
+    int i = 0;
+    while (i < tiles.length - 1) {
+      final a = tiles[i];
+      final b = tiles[i + 1];
+
+      // 얼음 타일은 머지 불가
+      if (a.tileType == TileType.ice || b.tileType == TileType.ice) {
+        i++;
+        continue;
+      }
+
+      final aWild = a.tileType == TileType.wild;
+      final bWild = b.tileType == TileType.wild;
+      final canMerge = aWild || bWild || a.value == b.value;
+
+      if (canMerge) {
+        int mergedValue;
+        if (aWild && bWild) {
+          mergedValue = max(a.value, b.value) * 2;
+        } else if (aWild) {
+          mergedValue = b.value * 2;
+        } else if (bWild) {
+          mergedValue = a.value * 2;
+        } else {
+          mergedValue = a.value * 2;
+        }
+
+        int mergeScore = mergedValue;
+        if (a.tileType == TileType.golden || b.tileType == TileType.golden) {
+          mergeScore *= 2;
+        }
+
+        TileType resultType = TileType.normal;
+        if (a.tileType == TileType.bomb || b.tileType == TileType.bomb) {
+          resultType = TileType.bomb;
+        }
+
+        tiles[i] = a.copyWith(
+          value: mergedValue,
+          isMerged: true,
+          tileType: resultType,
+        );
+        totalScore += mergeScore;
+        totalMergeCount++;
+        tiles.removeAt(i + 1);
+        i++;
       } else {
-        mergedValue = a.value * 2;
+        i++;
       }
+    }
 
-      // 점수: 황금 타일이 하나라도 포함되면 ×2
-      int mergeScore = mergedValue;
-      if (a.tileType == TileType.golden || b.tileType == TileType.golden) {
-        mergeScore *= 2;
-      }
-
-      // 결과 타일 타입: 폭탄 우선, 와일드·황금은 소멸
-      TileType resultType = TileType.normal;
-      if (a.tileType == TileType.bomb || b.tileType == TileType.bomb) {
-        resultType = TileType.bomb;
-      }
-
-      tiles[i] = a.copyWith(
-        value: mergedValue,
-        isMerged: true,
-        tileType: resultType,
-      );
-      score += mergeScore;
-      mergeCount++;
-      tiles.removeAt(i + 1);
-      i++; // 새로 머지된 타일은 건너뜀
-    } else {
-      i++;
+    for (int j = 0; j < tiles.length; j++) {
+      result[segStart + j] = tiles[j];
     }
   }
 
-  final result = List<Tile?>.filled(4, null);
-  for (int j = 0; j < tiles.length; j++) {
-    result[j] = tiles[j];
-  }
-  return (line: result, score: score, mergeCount: mergeCount);
+  return (line: result, score: totalScore, mergeCount: totalMergeCount);
 }
 
 /// 방향에 맞게 보드 전체에 이동·머지 적용.
@@ -165,10 +188,12 @@ bool isGameOver(List<List<Tile?>> board) {
   for (int r = 0; r < 4; r++) {
     for (int c = 0; c < 4; c++) {
       final tile = board[r][c]!;
-      if (tile.tileType == TileType.ice) continue; // 얼음은 머지 불가
+      if (tile.tileType == TileType.ice) continue;
+      if (tile.tileType == TileType.lock) continue;
 
       for (final neighbor in _neighbors(board, r, c)) {
         if (neighbor.tileType == TileType.ice) continue;
+        if (neighbor.tileType == TileType.lock) continue;
         final canMerge = tile.value == neighbor.value ||
             tile.tileType == TileType.wild ||
             neighbor.tileType == TileType.wild;

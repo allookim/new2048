@@ -405,7 +405,8 @@ class GameController extends ChangeNotifier {
     if (roll < 0.10) return TileType.bomb;   // 4%
     if (roll < 0.13) return TileType.ice;    // 3%
     if (roll < 0.16) return TileType.wild;   // 3%
-    return TileType.normal;                   // 84%
+    if (roll < 0.19) return TileType.lock;   // 3%
+    return TileType.normal;                   // 81%
   }
 
   @override

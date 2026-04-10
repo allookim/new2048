@@ -314,6 +314,16 @@ class _TileWidgetState extends State<TileWidget>
               ),
             ),
           ),
+        if (type == TileType.lock)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0x66888888),
+                borderRadius: BorderRadius.circular(4),
+                border: Border.all(color: const Color(0xAABBBBBB), width: 2),
+              ),
+            ),
+          ),
         Positioned(
           top: 3,
           right: 3,
@@ -362,6 +372,7 @@ class _SpecialBadge extends StatelessWidget {
       TileType.bomb => (Icons.local_fire_department_rounded, const Color(0xFFFF4500)),
       TileType.ice => (Icons.ac_unit_rounded, const Color(0xFF00BFFF)),
       TileType.wild => (Icons.auto_awesome, const Color(0xFFDA70D6)),
+      TileType.lock => (Icons.lock_rounded, const Color(0xFFBBBBBB)),
       TileType.normal => (Icons.circle, Colors.transparent),
     };
 
