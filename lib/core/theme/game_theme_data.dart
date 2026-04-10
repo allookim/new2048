@@ -72,8 +72,11 @@ class GameThemeData {
   /// 타일 배경 이미지 (빈 타일 포함 모든 타일에 사용)
   final String? tileBgAsset;
 
-  /// 숫자 타일에 오버레이할 이미지 (물고기 등)
+  /// 숫자 타일에 오버레이할 이미지 (물고기 등) — 단일 이미지
   final String? tileFishAsset;
+
+  /// 값별 물고기 이미지 맵 (설정 시 tileFishAsset보다 우선)
+  final Map<int, String>? tileFishAssets;
 
   const GameThemeData({
     required this.id,
@@ -104,7 +107,16 @@ class GameThemeData {
     this.isCircleTile = false,
     this.tileBgAsset,
     this.tileFishAsset,
+    this.tileFishAssets,
   });
+
+  /// 값에 맞는 물고기 이미지 반환. 맵에 없으면 가장 높은 키 사용
+  String? tileFishAssetForValue(int value) {
+    if (tileFishAssets == null) return tileFishAsset;
+    if (tileFishAssets!.containsKey(value)) return tileFishAssets![value];
+    final sortedKeys = tileFishAssets!.keys.toList()..sort();
+    return tileFishAssets![sortedKeys.last];
+  }
 
   Color tileColor(int value) {
     return tileColors[value] ?? const Color(0xFF3C3A32);

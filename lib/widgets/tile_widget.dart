@@ -124,12 +124,12 @@ class _TileWidgetState extends State<TileWidget>
             children: [
               // 버블 배경 (빈 타일만) — TileWidget에서는 game_board가 담당하므로 생략
               // 숫자 타일: 물고기 배경 + 외부 원형 그림자 + 숫자
-              if (hasValue && theme.tileFishAsset != null) ...[
+              if (hasValue && theme.tileFishAssetForValue(widget.tile.value) != null) ...[
                 SizedBox(
                   width: widget.size,
                   height: widget.size,
                   child: Image.asset(
-                    theme.tileFishAsset!,
+                    theme.tileFishAssetForValue(widget.tile.value)!,
                     fit: BoxFit.contain,
                   ),
                 ),

@@ -22,7 +22,17 @@ const seaTheme = GameThemeData(
   backgroundAsset: 'assets/images/bg_sea.png',
   backgroundVideoAsset: 'assets/images/bg_sea.mp4',
   tileBgAsset: 'assets/tiles/Tile-sea-bg.png',
-  tileFishAsset: 'assets/tiles/Tile-sea-bg-fish-1.png',
+  tileFishAssets: {
+    2:   'assets/tiles/Tile-sea-bg-fish-1.png',
+    4:   'assets/tiles/Tile-sea-bg-fish-2.png',
+    8:   'assets/tiles/Tile-sea-bg-fish-3.png',
+    16:  'assets/tiles/Tile-sea-bg-fish-4.png',
+    32:  'assets/tiles/Tile-sea-bg-fish-5.png',
+    64:  'assets/tiles/Tile-sea-bg-fish-6.png',
+    128: 'assets/tiles/Tile-sea-bg-fish-7.png',
+    256: 'assets/tiles/Tile-sea-bg-fish-8.png',
+    512: 'assets/tiles/Tile-sea-bg-fish-9.png',
+  },
   tileColors: {
     2: Color(0x886cded0),
     4: Color(0x885BC9BC),
