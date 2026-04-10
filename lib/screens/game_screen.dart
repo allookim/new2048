@@ -122,7 +122,7 @@ class _GameScreenState extends State<GameScreen>
           children: [
             const SizedBox(height: 8),
             _TitleRow(onMenu: _openDrawer, isPauseIcon: true),
-            const SizedBox(height: 12),
+            const SizedBox(height: 26),
             const _FigmaScore(),
             const TimerBar(),
             const _ComboBadgeRow(),
@@ -255,7 +255,7 @@ class _TitleRow extends StatelessWidget {
             'Num Loop',
             style: TextStyle(
               fontFamily: 'Nunito',
-              fontSize: 40,
+              fontSize: 28,
               fontWeight: FontWeight.w900,
               color: Colors.white,
               letterSpacing: -2,
