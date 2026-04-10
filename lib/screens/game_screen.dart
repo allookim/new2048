@@ -253,7 +253,7 @@ class _TitleRow extends StatelessWidget {
             'Num Loop',
             style: TextStyle(
               fontFamily: 'Nunito',
-              fontSize: 28,
+              fontSize: 32,
               fontWeight: FontWeight.w900,
               color: Colors.white,
               letterSpacing: -2,
