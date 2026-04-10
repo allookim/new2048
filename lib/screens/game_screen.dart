@@ -118,7 +118,7 @@ class _GameScreenState extends State<GameScreen>
       bottom: isAndroid,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final boardTop = constraints.maxHeight * 0.35;
+          final boardTop = constraints.maxHeight * 0.30;
           return Stack(
             children: [
               // Header & score — top
