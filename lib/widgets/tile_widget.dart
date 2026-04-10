@@ -125,21 +125,10 @@ class _TileWidgetState extends State<TileWidget>
               // 버블 배경 (빈 타일만) — TileWidget에서는 game_board가 담당하므로 생략
               // 숫자 타일: 물고기 배경 + 외부 원형 그림자 + 숫자
               if (hasValue && theme.tileFishAsset != null) ...[
-                Container(
-                  width: widget.size,
-                  height: widget.size,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white, // 불투명해야 그림자가 외부에만 렌더링됨
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ClipOval(
+                ClipOval(
+                  child: SizedBox(
+                    width: widget.size,
+                    height: widget.size,
                     child: Image.asset(
                       theme.tileFishAsset!,
                       fit: BoxFit.cover,
