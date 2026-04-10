@@ -194,21 +194,10 @@ class _CircleImageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white, // 불투명해야 그림자가 외부에만 렌더링됨
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.28),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipOval(
+    return ClipOval(
+      child: SizedBox(
+        width: size,
+        height: size,
         child: Image.asset(asset, fit: BoxFit.cover),
       ),
     );
