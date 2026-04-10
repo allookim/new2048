@@ -88,8 +88,12 @@ class _GameBoardState extends State<GameBoard>
                   width: boardWidth,
                   height: bh,
                   decoration: BoxDecoration(
-                    color: theme.boardColor,
-                    borderRadius: BorderRadius.circular(theme.boardRadius),
+                    color: theme.tileBgAsset != null
+                        ? Colors.transparent
+                        : theme.boardColor,
+                    borderRadius: theme.tileBgAsset != null
+                        ? BorderRadius.zero
+                        : BorderRadius.circular(theme.boardRadius),
                   ),
                   child: Stack(
                     children: [
@@ -99,15 +103,20 @@ class _GameBoardState extends State<GameBoard>
                           return Positioned(
                             left: theme.tileLeft(c, boardWidth),
                             top: theme.tileTop(r, boardWidth),
-                            child: Container(
-                              width: cs,
-                              height: cs,
-                              decoration: BoxDecoration(
-                                color: theme.cellColor,
-                                borderRadius:
-                                    BorderRadius.circular(theme.tileRadius),
-                              ),
-                            ),
+                            child: theme.tileBgAsset != null
+                                ? _CircleImageTile(
+                                    asset: theme.tileBgAsset!,
+                                    size: cs,
+                                  )
+                                : Container(
+                                    width: cs,
+                                    height: cs,
+                                    decoration: BoxDecoration(
+                                      color: theme.cellColor,
+                                      borderRadius: BorderRadius.circular(
+                                          theme.tileRadius),
+                                    ),
+                                  ),
                           );
                         });
                       }).expand((list) => list),
@@ -173,6 +182,35 @@ class _GameBoardState extends State<GameBoard>
           },
         );
       },
+    );
+  }
+}
+
+// 원형 마스크에 이미지 + 외부 그림자
+class _CircleImageTile extends StatelessWidget {
+  final String asset;
+  final double size;
+  const _CircleImageTile({required this.asset, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white, // 불투명해야 그림자가 외부에만 렌더링됨
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.28),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: Image.asset(asset, fit: BoxFit.cover),
+      ),
     );
   }
 }

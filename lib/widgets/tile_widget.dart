@@ -97,10 +97,83 @@ class _TileWidgetState extends State<TileWidget>
     if (theme.isPixelStyle) {
       return _buildPixelTile(theme);
     }
+    if (theme.tileBgAsset != null) {
+      return _buildSeaTile(theme);
+    }
     if (isGifMode) {
       return _buildGifTile(theme);
     }
     return _buildClassicTile(theme);
+  }
+
+  Widget _buildSeaTile(dynamic theme) {
+    final hasValue = widget.tile.value > 0;
+    final wiperRad = _inMergeAnim ? 0.0 : widget.wiperAngle * pi / 180;
+    return AnimatedBuilder(
+      animation: _scaleAnimation,
+      builder: (context, child) => Transform.scale(
+        scale: _scaleAnimation.value,
+        child: child,
+      ),
+      child: _withSpecialOverlay(
+        child: SizedBox(
+          width: widget.size,
+          height: widget.size,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // 버블 배경 (빈 타일만) — TileWidget에서는 game_board가 담당하므로 생략
+              // 숫자 타일: 물고기 배경 + 외부 원형 그림자 + 숫자
+              if (hasValue && theme.tileFishAsset != null) ...[
+                Container(
+                  width: widget.size,
+                  height: widget.size,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white, // 불투명해야 그림자가 외부에만 렌더링됨
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: Image.asset(
+                      theme.tileFishAsset!,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Transform(
+                    transform: Matrix4.rotationZ(wiperRad),
+                    alignment: const Alignment(0, 1.4),
+                    child: Text(
+                      '${widget.tile.value}',
+                      style: TextStyle(
+                        fontFamily: 'Nunito',
+                        fontSize: theme.tileFontSize(widget.tile.value, widget.size),
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        shadows: const [
+                          Shadow(
+                            color: Color(0x88203968),
+                            offset: Offset(0, 2),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildGifTile(dynamic theme) {

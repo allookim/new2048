@@ -60,6 +60,18 @@ class GameThemeData {
   /// 픽셀 아트 스타일 렌더링 사용 여부
   final bool isPixelStyle;
 
+  /// 배경 이미지 에셋 경로 (null이면 게임 모드 기본 배경 사용)
+  final String? backgroundAsset;
+
+  /// 원형 타일 스타일 (Sea 테마 등)
+  final bool isCircleTile;
+
+  /// 타일 배경 이미지 (빈 타일 포함 모든 타일에 사용)
+  final String? tileBgAsset;
+
+  /// 숫자 타일에 오버레이할 이미지 (물고기 등)
+  final String? tileFishAsset;
+
   const GameThemeData({
     required this.id,
     required this.displayName,
@@ -84,6 +96,10 @@ class GameThemeData {
     this.isPremium = false,
     this.unlockCost,
     this.isPixelStyle = false,
+    this.backgroundAsset,
+    this.isCircleTile = false,
+    this.tileBgAsset,
+    this.tileFishAsset,
   });
 
   Color tileColor(int value) {

@@ -9,7 +9,7 @@ class ThemeController extends ChangeNotifier {
 
   GameThemeData _currentTheme = classicTheme;
   String _currentThemeId = 'classic';
-  final Set<String> _unlockedThemes = {'classic', 'dark_neon', 'pixel'};
+  final Set<String> _unlockedThemes = {'classic', 'dark_neon', 'pixel', 'basic', 'sea'};
 
   GameThemeData get theme => _currentTheme;
   String get currentThemeId => _currentThemeId;

@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/theme_controller.dart';
@@ -24,6 +26,7 @@ class _GameScreenState extends State<GameScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _drawerController;
   late Animation<Offset> _drawerSlide;
+  bool _useNewLayout = false;
 
   @override
   void initState() {
@@ -57,6 +60,106 @@ class _GameScreenState extends State<GameScreen>
     _drawerController.reverse();
   }
 
+  Widget _buildOriginalLayout() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 18),
+            _TitleRow(onMenu: _openDrawer),
+            const SizedBox(height: 30),
+            const _ScoreRow(),
+            const SizedBox(height: 8),
+            const TimerBar(),
+            const SizedBox(height: 6),
+            const _ComboBadgeRow(),
+            const SizedBox(height: 4),
+            Expanded(
+              child: Center(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final size = constraints.maxWidth < constraints.maxHeight
+                        ? constraints.maxWidth
+                        : constraints.maxHeight;
+                    return SizedBox(
+                      width: size,
+                      height: size,
+                      child: const Stack(
+                        children: [
+                          GameBoard(),
+                          GameOverOverlay(),
+                          WinOverlay(),
+                          TimeUpOverlay(),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Consumer<GameController>(
+              builder: (_, gc, __) => gc.gameMode == GameMode.item
+                  ? const SkillBar()
+                  : const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFigmaLayout() {
+    final isAndroid = !kIsWeb && Platform.isAndroid;
+    return SafeArea(
+      bottom: isAndroid,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 8),
+            _TitleRow(onMenu: _openDrawer, isPauseIcon: true),
+            const SizedBox(height: 12),
+            const _FigmaScore(),
+            const TimerBar(),
+            const _ComboBadgeRow(),
+            const SizedBox(height: 8),
+            Expanded(
+              child: Center(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final size = constraints.maxWidth < constraints.maxHeight
+                        ? constraints.maxWidth
+                        : constraints.maxHeight;
+                    return SizedBox(
+                      width: size,
+                      height: size,
+                      child: const Stack(
+                        children: [
+                          GameBoard(),
+                          GameOverOverlay(),
+                          WinOverlay(),
+                          TimeUpOverlay(),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const SkillBar(),
+            if (isAndroid) const _HomeIndicator(),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeController>().theme;
@@ -67,8 +170,17 @@ class _GameScreenState extends State<GameScreen>
         children: [
           // ── Background image ──────────────────────────────
           Positioned.fill(
-            child: Consumer<GameController>(
-              builder: (_, gc, __) {
+            child: Consumer2<GameController, ThemeController>(
+              builder: (_, gc, tc, __) {
+                // New Layout: 테마 배경 우선 사용
+                if (_useNewLayout && tc.theme.backgroundAsset != null) {
+                  return Image.asset(
+                    tc.theme.backgroundAsset!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        Container(color: tc.theme.backgroundColor),
+                  );
+                }
                 final bg = gc.gameMode == GameMode.normalTest
                     ? 'assets/images/bg_normal_test.png'
                     : 'assets/images/bg_normal.png';
@@ -77,62 +189,19 @@ class _GameScreenState extends State<GameScreen>
             ),
           ),
           // ── Main content ──────────────────────────────────
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                children: [
-                  const SizedBox(height: 18),
-                  _TitleRow(onMenu: _openDrawer),
-                  const SizedBox(height: 30),
-                  const _ScoreRow(),
-                  const SizedBox(height: 8),
-                  const TimerBar(),
-                  const SizedBox(height: 6),
-                  const _ComboBadgeRow(),
-                  const SizedBox(height: 4),
-                  Expanded(
-                    child: Center(
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final size = constraints.maxWidth <
-                                  constraints.maxHeight
-                              ? constraints.maxWidth
-                              : constraints.maxHeight;
-                          return SizedBox(
-                            width: size,
-                            height: size,
-                            child: const Stack(
-                              children: [
-                                GameBoard(),
-                                GameOverOverlay(),
-                                WinOverlay(),
-                                TimeUpOverlay(),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // SkillBar: only visible in item mode
-                  Consumer<GameController>(
-                    builder: (_, gc, __) => gc.gameMode == GameMode.item
-                        ? const SkillBar()
-                        : const SizedBox.shrink(),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-              ),
-            ),
-          ),
+          _useNewLayout ? _buildFigmaLayout() : _buildOriginalLayout(),
 
             // ── Full-screen top-sliding drawer ────────────────
             SlideTransition(
               position: _drawerSlide,
               child: _FullScreenDrawer(
                 onClose: _closeDrawer,
+                useNewLayout: _useNewLayout,
+                onSelectNewLayout: (mode) {
+                  setState(() => _useNewLayout = true);
+                  context.read<GameController>().startGame(mode);
+                  _closeDrawer();
+                },
               ),
             ),
           ],
@@ -145,7 +214,8 @@ class _GameScreenState extends State<GameScreen>
 
 class _TitleRow extends StatelessWidget {
   final VoidCallback onMenu;
-  const _TitleRow({required this.onMenu});
+  final bool isPauseIcon;
+  const _TitleRow({required this.onMenu, this.isPauseIcon = false});
 
   @override
   Widget build(BuildContext context) {
@@ -184,13 +254,28 @@ class _TitleRow extends StatelessWidget {
             height: 1,
           ),
         ),
-        // New game icon
+        // Right icon: pause (new layout) or refresh (original)
         GestureDetector(
           onTap: gc.newGame,
           behavior: HitTestBehavior.opaque,
-          child: const Padding(
-            padding: EdgeInsets.all(6),
-            child: Icon(Icons.refresh_rounded, color: Colors.white, size: 38),
+          child: Padding(
+            padding: const EdgeInsets.all(6),
+            child: isPauseIcon
+                ? Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.pause_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  )
+                : const Icon(Icons.refresh_rounded,
+                    color: Colors.white, size: 38),
           ),
         ),
       ],
@@ -382,7 +467,13 @@ class _ArrowBtn extends StatelessWidget {
 
 class _FullScreenDrawer extends StatelessWidget {
   final VoidCallback onClose;
-  const _FullScreenDrawer({required this.onClose});
+  final bool useNewLayout;
+  final void Function(GameMode) onSelectNewLayout;
+  const _FullScreenDrawer({
+    required this.onClose,
+    required this.useNewLayout,
+    required this.onSelectNewLayout,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -448,6 +539,37 @@ class _FullScreenDrawer extends StatelessWidget {
                           gc.startGame(GameMode.speed);
                           onClose();
                         },
+                      ),
+                      const SizedBox(height: 12),
+                      Container(height: 1, color: Colors.white12),
+                      const SizedBox(height: 12),
+                      // ── New Layout ──
+                      const Text(
+                        'NEW LAYOUT',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white38,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      _MenuItem(
+                        label: 'Normal ✦',
+                        isActive: useNewLayout && currentMode == GameMode.normal,
+                        onTap: () => onSelectNewLayout(GameMode.normal),
+                      ),
+                      _MenuItem(
+                        label: 'Item ✦',
+                        isActive: useNewLayout && currentMode == GameMode.item,
+                        onTap: () => onSelectNewLayout(GameMode.item),
+                      ),
+                      _MenuItem(
+                        label: 'Speed ✦',
+                        isActive: useNewLayout && currentMode == GameMode.speed,
+                        onTap: () => onSelectNewLayout(GameMode.speed),
                       ),
                       const SizedBox(height: 12),
                       Container(height: 1, color: Colors.white12),
@@ -586,6 +708,84 @@ class _MenuItem extends StatelessWidget {
               fontWeight: FontWeight.w900,
               color: isActive ? const Color(0xFFB5762A) : Colors.white,
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Figma Layout: Score section ──────────────────────────────
+
+class _FigmaScore extends StatelessWidget {
+  const _FigmaScore();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<GameController>(
+      builder: (_, gc, __) {
+        final isSpeed = gc.gameMode == GameMode.speed;
+        final bestValue = isSpeed ? gc.bestSpeedScore : gc.bestScore;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              isSpeed ? '⚡ $bestValue' : '😎 $bestValue',
+              textAlign: TextAlign.left,
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                color: Colors.white70,
+                letterSpacing: -0.5,
+              ),
+            ),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              transitionBuilder: (child, anim) => SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, -0.5),
+                  end: Offset.zero,
+                ).animate(anim),
+                child: FadeTransition(opacity: anim, child: child),
+              ),
+              child: Text(
+                '${gc.score}',
+                key: ValueKey(gc.score),
+                textAlign: TextAlign.left,
+                style: const TextStyle(
+                  fontFamily: 'Nunito',
+                  fontSize: 50,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -1.5,
+                  height: 1.1,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// ── Figma Layout: Home Indicator (Android only) ──────────────
+
+class _HomeIndicator extends StatelessWidget {
+  const _HomeIndicator();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 34,
+      child: Center(
+        child: Container(
+          width: 144,
+          height: 5,
+          decoration: BoxDecoration(
+            color: const Color(0xFFBFBFBF),
+            borderRadius: BorderRadius.circular(100),
           ),
         ),
       ),

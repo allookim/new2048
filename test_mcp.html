@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test MCP</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .phone {
+      position: relative;
+      width: 402px;
+      height: 874px;
+      background: #2e0b58;
+      overflow: hidden;
+    }
+
+    /* 햄버거 메뉴 */
+    .hamburger {
+      position: absolute;
+      top: 29px;
+      left: 29px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      cursor: pointer;
+    }
+    .hamburger span {
+      display: block;
+      height: 2px;
+      background: #ffffff;
+    }
+    .hamburger span:nth-child(1) { width: 21px; }
+    .hamburger span:nth-child(2) { width: 14px; }
+    .hamburger span:nth-child(3) { width: 14px; }
+
+    /* 스코어 */
+    .score {
+      position: absolute;
+      top: 104px;
+      left: 115px;
+      color: #ffffff;
+      font-family: 'Lunasima', sans-serif;
+      font-size: 52px;
+      font-weight: 700;
+      line-height: 61px;
+    }
+
+    /* 4x4 타일 그리드 */
+    .grid {
+      position: absolute;
+      top: 296px;
+      left: 29px;
+      width: 343px;
+      height: 346px;
+      display: grid;
+      grid-template-columns: repeat(4, 76px);
+      grid-template-rows: repeat(4, 76px);
+      gap: 13px 13px;
+    }
+
+    .tile {
+      width: 76px;
+      height: 76px;
+      background: #ffcc00;
+      border-radius: 10px;
+    }
+
+    /* 하단 텍스트 */
+    .label {
+      position: absolute;
+      top: 699px;
+      left: 81px;
+      color: #ffffff;
+      font-family: 'Lunasima', sans-serif;
+      font-size: 52px;
+      font-weight: 700;
+      line-height: 61px;
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+
+    <div class="hamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <div class="score">99999</div>
+
+    <div class="grid">
+      <div class="tile"></div>
+      <div class="tile" style="opacity: 0.3;"></div>
+      <div class="tile"></div>
+      <div class="tile"></div>
+
+      <div class="tile"></div>
+      <div class="tile"></div>
+      <div class="tile"></div>
+      <div class="tile"></div>
+
+      <div class="tile"></div>
+      <div class="tile"></div>
+      <div class="tile"></div>
+      <div class="tile"></div>
+
+      <div class="tile"></div>
+      <div class="tile"></div>
+      <div class="tile"></div>
+      <div class="tile"></div>
+    </div>
+
+    <div class="label">Test MCP</div>
+
+  </div>
+</body>
+</html>
