@@ -24,9 +24,11 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _drawerController;
   late Animation<Offset> _drawerSlide;
+  late AnimationController _pauseController;
+  late Animation<Offset> _pauseSlide;
   bool _useNewLayout = true;
 
   @override
@@ -39,12 +41,17 @@ class _GameScreenState extends State<GameScreen>
     _drawerSlide = Tween<Offset>(
       begin: const Offset(-1, 0),
       end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _drawerController,
-        curve: Curves.easeInOut,
-      ),
+    ).animate(CurvedAnimation(parent: _drawerController, curve: Curves.easeInOut));
+
+    _pauseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 320),
     );
+    _pauseSlide = Tween<Offset>(
+      begin: const Offset(1, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _pauseController, curve: Curves.easeInOut));
+
     WidgetsBinding.instance.addPostFrameCallback((_) => _precacheTileImages());
   }
 
@@ -69,6 +76,7 @@ class _GameScreenState extends State<GameScreen>
   @override
   void dispose() {
     _drawerController.dispose();
+    _pauseController.dispose();
     super.dispose();
   }
 
@@ -78,6 +86,16 @@ class _GameScreenState extends State<GameScreen>
 
   void _closeDrawer() {
     _drawerController.reverse();
+  }
+
+  void _openPauseMenu() {
+    context.read<GameController>().pause();
+    _pauseController.forward();
+  }
+
+  void _closePauseMenu() {
+    context.read<GameController>().resume();
+    _pauseController.reverse();
   }
 
   Widget _buildOriginalLayout() {
@@ -147,7 +165,7 @@ class _GameScreenState extends State<GameScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 8),
-                    _TitleRow(onMenu: _openDrawer, isPauseIcon: true),
+                    _TitleRow(onMenu: _openDrawer, onPause: _openPauseMenu),
                     const SizedBox(height: 26),
                     const _FigmaScore(),
                     const TimerBar(),
@@ -215,6 +233,36 @@ class _GameScreenState extends State<GameScreen>
           // ── Main content ──────────────────────────────────
           _useNewLayout ? _buildFigmaLayout() : _buildOriginalLayout(),
 
+          // ── Pause menu ────────────────────────────────────
+          AnimatedBuilder(
+            animation: _pauseController,
+            builder: (context, _) {
+              if (_pauseController.value == 0) return const SizedBox.shrink();
+              return Stack(
+                children: [
+                  GestureDetector(
+                    onTap: _closePauseMenu,
+                    child: Container(
+                      color: Colors.black.withValues(
+                          alpha: 0.4 * _pauseController.value),
+                    ),
+                  ),
+                  ClipRect(
+                    child: SlideTransition(
+                      position: _pauseSlide,
+                      child: _PauseMenu(
+                        onResume: _closePauseMenu,
+                        onRestart: () {
+                          _pauseController.value = 0;
+                          context.read<GameController>().newGame();
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
             // ── Left-side drawer ──────────────────────────────
             AnimatedBuilder(
               animation: _drawerController,
@@ -257,19 +305,18 @@ class _GameScreenState extends State<GameScreen>
 
 class _TitleRow extends StatelessWidget {
   final VoidCallback onMenu;
-  final bool isPauseIcon;
-  const _TitleRow({required this.onMenu, this.isPauseIcon = false});
+  final VoidCallback? onPause;
+  const _TitleRow({required this.onMenu, this.onPause});
 
   @override
   Widget build(BuildContext context) {
-    final gc = context.read<GameController>();
     return SizedBox(
       height: 44,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Drawer icon — left aligned, 44x44 tap area
+          // Drawer icon — left
           GestureDetector(
             onTap: onMenu,
             behavior: HitTestBehavior.opaque,
@@ -298,16 +345,16 @@ class _TitleRow extends StatelessWidget {
               height: 1,
             ),
           ),
-          // Right icon — right aligned, 44x44 tap area
+          // Pause icon — right
           GestureDetector(
-            onTap: gc.newGame,
+            onTap: onPause,
             behavior: HitTestBehavior.opaque,
             child: SizedBox(
               width: 44,
               height: 44,
               child: Align(
                 alignment: Alignment.centerRight,
-                child: isPauseIcon
+                child: onPause != null
                     ? SvgPicture.asset(
                         'assets/images/ic_pause.svg',
                         width: 32,
@@ -806,6 +853,61 @@ class _VideoBackgroundState extends State<_VideoBackground> {
         width: _controller.value.size.width,
         height: _controller.value.size.height,
         child: VideoPlayer(_controller),
+      ),
+    );
+  }
+}
+
+// ── Pause Menu ───────────────────────────────────────────────
+
+class _PauseMenu extends StatelessWidget {
+  final VoidCallback onResume;
+  final VoidCallback onRestart;
+  const _PauseMenu({required this.onResume, required this.onRestart});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: const Color(0xFFD9A84D),
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Close button
+            Align(
+              alignment: Alignment.centerRight,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16, right: 16),
+                child: IconButton(
+                  icon: const Icon(Icons.close,
+                      color: Color(0x99FFFFFF), size: 30),
+                  onPressed: onResume,
+                ),
+              ),
+            ),
+            // Buttons
+            Expanded(
+              child: Align(
+                alignment: const Alignment(0, -0.3),
+                child: SizedBox(
+                  width: 320,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _MenuItem(
+                        label: 'Play game',
+                        onTap: onResume,
+                      ),
+                      _MenuItem(
+                        label: 'Restart game',
+                        onTap: onRestart,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -43,11 +43,14 @@ class GameController extends ChangeNotifier {
   DateTime? _lastMoveTime;
   int _maxCombo = 0;
 
+  bool _isPaused = false;
+
   List<List<Tile?>> get board => _board;
   int get score => _score;
   int get bestScore => _bestScore;
   int get bestSpeedScore => _bestSpeedScore;
   GameStatus get status => _status;
+  bool get isPaused => _isPaused;
   bool get canUndo => _history.isNotEmpty && _gameMode != GameMode.speed;
   SkillInventory get skillInventory => _skillInventory;
   String? get activeSkillId => _activeSkillId;
@@ -108,8 +111,25 @@ class GameController extends ChangeNotifier {
     newGame();
   }
 
+  void pause() {
+    if (_isPaused || _status != GameStatus.playing) return;
+    _isPaused = true;
+    if (_gameMode == GameMode.speed) _speedTimer?.cancel();
+    notifyListeners();
+  }
+
+  void resume() {
+    if (!_isPaused) return;
+    _isPaused = false;
+    if (_gameMode == GameMode.speed && _status == GameStatus.playing) {
+      _startSpeedTimer();
+    }
+    notifyListeners();
+  }
+
   void newGame() {
     _speedTimer?.cancel();
+    _isPaused = false;
     _board = List.generate(4, (_) => List.filled(4, null));
     _score = 0;
     _status = GameStatus.playing;
@@ -153,6 +173,7 @@ class GameController extends ChangeNotifier {
 
   void move(Direction direction) {
     if (_status == GameStatus.gameOver || _status == GameStatus.timeUp) return;
+    if (_isPaused) return;
     if (isTargeting) {
       _activeSkillId = null;
       notifyListeners();
