@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/theme_controller.dart';
 import '../game/game_controller.dart';
@@ -307,8 +308,10 @@ class _TileWidgetState extends State<TileWidget>
     if (type == TileType.normal) return child;
 
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         child,
+        // Ice — 파란 틴트 오버레이
         if (type == TileType.ice)
           Positioned.fill(
             child: Container(
@@ -318,6 +321,7 @@ class _TileWidgetState extends State<TileWidget>
               ),
             ),
           ),
+        // Lock — 회색 틴트 오버레이
         if (type == TileType.lock)
           Positioned.fill(
             child: Container(
@@ -328,6 +332,7 @@ class _TileWidgetState extends State<TileWidget>
               ),
             ),
           ),
+        // Arrow — 오렌지 틴트 오버레이
         if (_isArrowType(type))
           Positioned.fill(
             child: Container(
@@ -337,68 +342,72 @@ class _TileWidgetState extends State<TileWidget>
               ),
             ),
           ),
-        Positioned(
-          top: 3,
-          right: 3,
-          child: _SpecialBadge(type: type, tileSize: widget.size),
-        ),
-        if ((type == TileType.ice || type == TileType.lock) && widget.tile.frozenTurns > 0)
+        // 뱃지: Arrow, Lock 만
+        if (_isArrowType(type))
           Positioned(
-            bottom: 4,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: type == TileType.lock
-                      ? const Color(0xCC888888)
-                      : const Color(0xCC00BFFF),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '${widget.tile.frozenTurns}',
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+            top: -5,
+            right: -5,
+            child: _ArrowBadge(type: type),
+          ),
+        if (type == TileType.lock)
+          Positioned(
+            top: -5,
+            right: -5,
+            child: _LockBadge(frozenTurns: widget.tile.frozenTurns),
           ),
       ],
     );
   }
 }
 
-class _SpecialBadge extends StatelessWidget {
-  final TileType type;
-  final double tileSize;
+// ── Arrow Badge ───────────────────────────────────────────────
 
-  const _SpecialBadge({required this.type, required this.tileSize});
+const _kArrowAssets = {
+  TileType.arrowLeft:  'assets/tiles/ic_item_arrow_left.svg',
+  TileType.arrowRight: 'assets/tiles/ic_item_arrow_right.svg',
+  TileType.arrowUp:    'assets/tiles/ic_item_arrow_up.svg',
+  TileType.arrowDown:  'assets/tiles/ic_item_arrow_down.svg',
+};
+
+class _ArrowBadge extends StatelessWidget {
+  final TileType type;
+  const _ArrowBadge({required this.type});
 
   @override
   Widget build(BuildContext context) {
-    final iconSize = (tileSize * 0.22).clamp(10.0, 18.0);
-    final (icon, color) = switch (type) {
-      TileType.golden => (Icons.star_rounded, const Color(0xFFFFD700)),
-      TileType.bomb => (Icons.local_fire_department_rounded, const Color(0xFFFF4500)),
-      TileType.ice => (Icons.ac_unit_rounded, const Color(0xFF00BFFF)),
-      TileType.wild => (Icons.auto_awesome, const Color(0xFFDA70D6)),
-      TileType.lock => (Icons.lock_rounded, const Color(0xFFBBBBBB)),
-      TileType.arrowLeft  => (Icons.arrow_back_rounded,    const Color(0xFFFF9500)),
-      TileType.arrowRight => (Icons.arrow_forward_rounded, const Color(0xFFFF9500)),
-      TileType.arrowUp    => (Icons.arrow_upward_rounded,  const Color(0xFFFF9500)),
-      TileType.arrowDown  => (Icons.arrow_downward_rounded,const Color(0xFFFF9500)),
-      TileType.normal => (Icons.circle, Colors.transparent),
-    };
+    final asset = _kArrowAssets[type];
+    if (asset == null) return const SizedBox.shrink();
+    return SvgPicture.asset(asset, width: 32, height: 32);
+  }
+}
 
-    return Icon(
-      icon,
-      size: iconSize,
-      color: color,
-      shadows: const [Shadow(color: Colors.black45, blurRadius: 3)],
+// ── Lock Badge (icon + circular progress) ────────────────────
+
+class _LockBadge extends StatelessWidget {
+  final int frozenTurns;
+  const _LockBadge({required this.frozenTurns});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 32,
+      height: 32,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          CircularProgressIndicator(
+            value: frozenTurns / 8.0,
+            strokeWidth: 2.5,
+            backgroundColor: const Color(0xFF2b0802),
+            valueColor: const AlwaysStoppedAnimation(Color(0xFFff5757)),
+          ),
+          SvgPicture.asset(
+            'assets/tiles/ic_item_lock.svg',
+            width: 18,
+            height: 18,
+          ),
+        ],
+      ),
     );
   }
 }
