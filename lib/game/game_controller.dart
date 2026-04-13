@@ -395,6 +395,11 @@ class GameController extends ChangeNotifier {
     );
   }
 
+  TileType _randomArrow() {
+    const arrows = [TileType.arrowLeft, TileType.arrowRight, TileType.arrowUp, TileType.arrowDown];
+    return arrows[_random.nextInt(4)];
+  }
+
   /// 아이템 모드에서 특수 타일 타입 랜덤 결정
   /// 노멀/스피드 모드에서는 항상 normal 반환
   TileType _pickTileType() {
@@ -406,7 +411,8 @@ class GameController extends ChangeNotifier {
     if (roll < 0.13) return TileType.ice;    // 3%
     if (roll < 0.16) return TileType.wild;   // 3%
     if (roll < 0.19) return TileType.lock;   // 3%
-    return TileType.normal;                   // 81%
+    if (roll < 0.22) return _randomArrow();  // 3%
+    return TileType.normal;                   // 78%
   }
 
   @override

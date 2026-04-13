@@ -45,8 +45,9 @@ enum Direction { left, right, up, down }
       final a = tiles[i];
       final b = tiles[i + 1];
 
-      // 얼음 타일은 머지 불가
-      if (a.tileType == TileType.ice || b.tileType == TileType.ice) {
+      // 얼음·화살표 타일은 머지 불가
+      if (a.tileType == TileType.ice || b.tileType == TileType.ice ||
+          _isArrowType(a.tileType) || _isArrowType(b.tileType)) {
         i++;
         continue;
       }
@@ -99,6 +100,69 @@ enum Direction { left, right, up, down }
   return (line: result, score: totalScore, mergeCount: totalMergeCount);
 }
 
+bool _isArrowType(TileType t) =>
+    t == TileType.arrowLeft || t == TileType.arrowRight ||
+    t == TileType.arrowUp   || t == TileType.arrowDown;
+
+/// 화살표 타일 활성화: 스와이프 방향과 일치하는 화살표를 찾아
+/// 화살표 기준 끝까지 타일을 최댓값 하나로 수렴시킨다.
+/// 변경이 발생하면 true 반환.
+bool _processArrows(List<List<Tile?>> board, Direction direction) {
+  bool changed = false;
+
+  void activateLine(List<Tile?> line, TileType arrowType, bool towardEnd) {
+    for (int i = 0; i < line.length; i++) {
+      if (line[i]?.tileType != arrowType) continue;
+
+      final start = towardEnd ? i : 0;
+      final end   = towardEnd ? line.length - 1 : i;
+
+      int maxVal = 0;
+      for (int j = start; j <= end; j++) {
+        final v = line[j]?.value ?? 0;
+        if (v > maxVal) maxVal = v;
+      }
+      if (maxVal == 0) continue;
+
+      // 화살표 위치에 최댓값 타일 배치, 나머지 null
+      line[i] = line[i]!.copyWith(
+        value: maxVal,
+        tileType: TileType.normal,
+        isMerged: true,
+      );
+      for (int j = start; j <= end; j++) {
+        if (j != i) line[j] = null;
+      }
+      changed = true;
+      break;
+    }
+  }
+
+  switch (direction) {
+    case Direction.left:
+      for (int r = 0; r < 4; r++) {
+        activateLine(board[r], TileType.arrowLeft, false);
+      }
+    case Direction.right:
+      for (int r = 0; r < 4; r++) {
+        activateLine(board[r], TileType.arrowRight, true);
+      }
+    case Direction.up:
+      for (int c = 0; c < 4; c++) {
+        final col = [board[0][c], board[1][c], board[2][c], board[3][c]];
+        activateLine(col, TileType.arrowUp, false);
+        for (int r = 0; r < 4; r++) board[r][c] = col[r];
+      }
+    case Direction.down:
+      for (int c = 0; c < 4; c++) {
+        final col = [board[0][c], board[1][c], board[2][c], board[3][c]];
+        activateLine(col, TileType.arrowDown, true);
+        for (int r = 0; r < 4; r++) board[r][c] = col[r];
+      }
+  }
+  return changed;
+}
+
 /// 방향에 맞게 보드 전체에 이동·머지 적용.
 MoveResult applyMove(List<List<Tile?>> board, Direction direction) {
   List<List<Tile?>> newBoard = List.generate(4, (r) {
@@ -111,7 +175,8 @@ MoveResult applyMove(List<List<Tile?>> board, Direction direction) {
 
   int totalScore = 0;
   int totalMergeCount = 0;
-  bool changed = false;
+  // 화살표 활성화가 일어나면 이미 changed
+  bool changed = _processArrows(newBoard, direction);
 
   void processRow(int r, bool reversed) {
     final original = newBoard[r].map((t) => t?.value).toList();
@@ -184,6 +249,13 @@ bool isGameOver(List<List<Tile?>> board) {
       if (board[r][c] == null) return false;
     }
   }
+  // 화살표 타일이 있으면 활성화로 판 변경 가능
+  for (int r = 0; r < 4; r++) {
+    for (int c = 0; c < 4; c++) {
+      if (_isArrowType(board[r][c]!.tileType)) return false;
+    }
+  }
+
   // 머지 가능한 인접 쌍이 있으면 게임 오버 아님
   for (int r = 0; r < 4; r++) {
     for (int c = 0; c < 4; c++) {

@@ -9,6 +9,10 @@ import 'pixel_tile_painter.dart';
 
 const _kGifValues = {2, 4, 8, 16, 32, 64, 128};
 
+bool _isArrowType(TileType t) =>
+    t == TileType.arrowLeft || t == TileType.arrowRight ||
+    t == TileType.arrowUp   || t == TileType.arrowDown;
+
 class TileWidget extends StatefulWidget {
   final Tile tile;
   final double size;
@@ -324,6 +328,15 @@ class _TileWidgetState extends State<TileWidget>
               ),
             ),
           ),
+        if (_isArrowType(type))
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0x44FF9500),
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
         Positioned(
           top: 3,
           right: 3,
@@ -373,6 +386,10 @@ class _SpecialBadge extends StatelessWidget {
       TileType.ice => (Icons.ac_unit_rounded, const Color(0xFF00BFFF)),
       TileType.wild => (Icons.auto_awesome, const Color(0xFFDA70D6)),
       TileType.lock => (Icons.lock_rounded, const Color(0xFFBBBBBB)),
+      TileType.arrowLeft  => (Icons.arrow_back_rounded,    const Color(0xFFFF9500)),
+      TileType.arrowRight => (Icons.arrow_forward_rounded, const Color(0xFFFF9500)),
+      TileType.arrowUp    => (Icons.arrow_upward_rounded,  const Color(0xFFFF9500)),
+      TileType.arrowDown  => (Icons.arrow_downward_rounded,const Color(0xFFFF9500)),
       TileType.normal => (Icons.circle, Colors.transparent),
     };
 
