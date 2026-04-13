@@ -17,6 +17,8 @@ class _SplashScreenState extends State<SplashScreen>
   late Animation<double> _fadeAnim;
   late Animation<double> _scaleAnim;
 
+  bool _precacheStarted = false;
+
   @override
   void initState() {
     super.initState();
@@ -32,19 +34,31 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
-
-    Future.delayed(const Duration(milliseconds: 1800), _goToGame);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // 모든 테마의 배경 이미지 미리 캐싱
-    for (final theme in themeRegistry.values) {
-      if (theme.backgroundAsset != null) {
-        precacheImage(AssetImage(theme.backgroundAsset!), context);
-      }
-    }
+    if (_precacheStarted) return;
+    _precacheStarted = true;
+    _precacheAndGo();
+  }
+
+  Future<void> _precacheAndGo() async {
+    final imageFutures = themeRegistry.values
+        .where((t) => t.backgroundAsset != null)
+        .map((t) => precacheImage(AssetImage(t.backgroundAsset!), context))
+        .toList();
+
+    await Future.wait([
+      Future.delayed(const Duration(milliseconds: 1800)),
+      Future.wait(imageFutures).timeout(
+        const Duration(seconds: 6),
+        onTimeout: () => [],
+      ),
+    ]);
+
+    _goToGame();
   }
 
   void _goToGame() {
