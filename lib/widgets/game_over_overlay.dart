@@ -48,7 +48,8 @@ class _GameOverOverlayState extends State<GameOverOverlay>
   Widget build(BuildContext context) {
     return Consumer<GameController>(
       builder: (context, gc, _) {
-        final visible = gc.status == GameStatus.gameOver;
+        final visible = gc.status == GameStatus.gameOver ||
+            gc.status == GameStatus.timeUp;
         WidgetsBinding.instance
             .addPostFrameCallback((_) => _handleVisibility(visible));
 
@@ -58,7 +59,10 @@ class _GameOverOverlayState extends State<GameOverOverlay>
             opacity: visible ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 200),
             child: Container(
-              color: const Color(0xE0100A36),
+              decoration: BoxDecoration(
+                color: const Color(0xE0100A36),
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: AnimatedBuilder(
                 animation: _ctrl,
                 builder: (context, child) => Opacity(
@@ -84,9 +88,9 @@ class _GameOverContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isSpeed = gc.gameMode == GameMode.speed;
+    final isItem = gc.gameMode == GameMode.item;
     final score = gc.score;
-    final best = isSpeed ? gc.bestSpeedScore : gc.bestScore;
+    final best = isItem ? gc.bestItemScore : gc.bestScore;
     final isNewBest = score > 0 && score >= best;
 
     return Padding(
@@ -94,22 +98,31 @@ class _GameOverContent extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Title
           const Text(
             'GAME\nOVER',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Nunito',
-              fontSize: 48,
+              fontSize: 58,
               fontWeight: FontWeight.w900,
-              color: Color(0xFFFF4E8C),
+              color: Color(0xFF6DDDD0),
               letterSpacing: 3,
               height: 0.95,
             ),
           ),
           const SizedBox(height: 28),
 
-          // Score — label on top, number below
+          Text(
+            '$score',
+            style: const TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 72,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFFFFD95C),
+              height: 1,
+            ),
+          ),
+          const SizedBox(height: 2),
           const Text(
             'SCORE',
             style: TextStyle(
@@ -120,27 +133,15 @@ class _GameOverContent extends StatelessWidget {
               letterSpacing: 3,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            '$score',
-            style: const TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: 56,
-              fontWeight: FontWeight.w900,
-              color: Color(0xFFFFD95C),
-              height: 1,
-            ),
-          ),
 
           const SizedBox(height: 16),
 
-          // Best / extra stats
           if (isNewBest)
             const Text(
               'NEW BEST!',
               style: TextStyle(
                 fontFamily: 'Nunito',
-                fontSize: 22,
+                fontSize: 16,
                 fontWeight: FontWeight.w900,
                 color: Color(0xFF6DDDD0),
                 letterSpacing: 2,
@@ -151,46 +152,43 @@ class _GameOverContent extends StatelessWidget {
               'BEST  $best',
               style: const TextStyle(
                 fontFamily: 'Nunito',
-                fontSize: 22,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: Color(0x66FFFFFF),
                 letterSpacing: 1,
               ),
             ),
 
-          if (isSpeed) ...[
-            const SizedBox(height: 6),
-            Text(
-              'MAX COMBO  ${gc.maxCombo}×',
-              style: const TextStyle(
-                fontFamily: 'Nunito',
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: Color(0x55FFFFFF),
-                letterSpacing: 1,
-              ),
+          const SizedBox(height: 6),
+          Text(
+            'MAX COMBO  ${gc.maxCombo}×',
+            style: const TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Color(0x55FFFFFF),
+              letterSpacing: 1,
             ),
-          ],
+          ),
 
           const SizedBox(height: 36),
 
-          // CTA
-          _TryAgainButton(onPressed: gc.newGame),
+          _PlayAgainButton(onPressed: gc.newGame),
         ],
       ),
     );
   }
 }
 
-class _TryAgainButton extends StatefulWidget {
+class _PlayAgainButton extends StatefulWidget {
   final VoidCallback onPressed;
-  const _TryAgainButton({required this.onPressed});
+  const _PlayAgainButton({required this.onPressed});
 
   @override
-  State<_TryAgainButton> createState() => _TryAgainButtonState();
+  State<_PlayAgainButton> createState() => _PlayAgainButtonState();
 }
 
-class _TryAgainButtonState extends State<_TryAgainButton> {
+class _PlayAgainButtonState extends State<_PlayAgainButton> {
   bool _pressed = false;
 
   @override
@@ -209,11 +207,11 @@ class _TryAgainButtonState extends State<_TryAgainButton> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: const Color(0xFF6DDDD0),
             borderRadius: BorderRadius.circular(16),
           ),
           child: const Text(
-            'TRY AGAIN',
+            'PLAY AGAIN',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Nunito',

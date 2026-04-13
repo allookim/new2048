@@ -7,6 +7,7 @@ abstract class Skill {
   String get name;
   String get description;
   IconData get icon;
+  String? get svgAsset => null;
   int get maxUsesPerGame;
 
   /// Whether this skill requires the player to tap a specific tile.

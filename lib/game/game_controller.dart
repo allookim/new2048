@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/tile.dart';
 import '../models/tile.dart' show TileType;
+import '../services/supabase_service.dart';
 import '../models/game_state.dart';
 import '../models/game_mode.dart';
 import '../skills/skill.dart';
@@ -16,14 +17,14 @@ import 'spawn_config.dart';
 
 class GameController extends ChangeNotifier {
   static const String _bestScoreKey = 'best_score';
-  static const String _bestSpeedScoreKey = 'best_speed_score';
+  static const String _bestItemScoreKey = 'best_item_score';
   static const int _maxHistorySize = 5;
   static const double _speedInitialSeconds = 60.0;
 
   List<List<Tile?>> _board = List.generate(4, (_) => List.filled(4, null));
   int _score = 0;
   int _bestScore = 0;
-  int _bestSpeedScore = 0;
+  int _bestItemScore = 0;
   GameStatus _status = GameStatus.playing;
   bool _hasSeenWin = false;
   final Random _random = Random();
@@ -48,10 +49,10 @@ class GameController extends ChangeNotifier {
   List<List<Tile?>> get board => _board;
   int get score => _score;
   int get bestScore => _bestScore;
-  int get bestSpeedScore => _bestSpeedScore;
+  int get bestItemScore => _bestItemScore;
   GameStatus get status => _status;
   bool get isPaused => _isPaused;
-  bool get canUndo => _history.isNotEmpty && _gameMode != GameMode.speed;
+  bool get canUndo => _history.isNotEmpty && _gameMode != GameMode.item;
   SkillInventory get skillInventory => _skillInventory;
   String? get activeSkillId => _activeSkillId;
   bool get isTargeting => _activeSkillId != null;
@@ -71,17 +72,19 @@ class GameController extends ChangeNotifier {
   Future<void> _loadBestScores() async {
     final prefs = await SharedPreferences.getInstance();
     _bestScore = prefs.getInt(_bestScoreKey) ?? 0;
-    _bestSpeedScore = prefs.getInt(_bestSpeedScoreKey) ?? 0;
+    _bestItemScore = prefs.getInt(_bestItemScoreKey) ?? 0;
   }
 
   Future<void> _saveBestScore() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_bestScoreKey, _bestScore);
+    SupabaseService.instance.submitScore(score: _bestScore, gameMode: 'normal');
   }
 
-  Future<void> _saveBestSpeedScore() async {
+  Future<void> _saveBestItemScore() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_bestSpeedScoreKey, _bestSpeedScore);
+    await prefs.setInt(_bestItemScoreKey, _bestItemScore);
+    SupabaseService.instance.submitScore(score: _bestItemScore, gameMode: 'item');
   }
 
   void _pushHistory() {
@@ -92,7 +95,7 @@ class GameController extends ChangeNotifier {
   }
 
   void undo() {
-    if (_history.isEmpty || _gameMode == GameMode.speed) return;
+    if (_history.isEmpty || _gameMode == GameMode.item) return;
     final snapshot = _history.removeLast();
     _board = snapshot.board;
     _score = snapshot.score;
@@ -114,14 +117,14 @@ class GameController extends ChangeNotifier {
   void pause() {
     if (_isPaused || _status != GameStatus.playing) return;
     _isPaused = true;
-    if (_gameMode == GameMode.speed) _speedTimer?.cancel();
+    if (_gameMode == GameMode.item) _speedTimer?.cancel();
     notifyListeners();
   }
 
   void resume() {
     if (!_isPaused) return;
     _isPaused = false;
-    if (_gameMode == GameMode.speed && _status == GameStatus.playing) {
+    if (_gameMode == GameMode.item && _status == GameStatus.playing) {
       _startSpeedTimer();
     }
     notifyListeners();
@@ -133,13 +136,13 @@ class GameController extends ChangeNotifier {
     _board = List.generate(4, (_) => List.filled(4, null));
     _score = 0;
     _status = GameStatus.playing;
-    _hasSeenWin = _gameMode == GameMode.speed; // 스피드 모드는 2048 후에도 계속
+    _hasSeenWin = _gameMode == GameMode.item; // 스피드 모드는 2048 후에도 계속
     _history.clear();
     _skillInventory = SkillInventory(defaultSkills);
     _activeSkillId = null;
 
-    if (_gameMode == GameMode.speed) {
-      _spawnConfig = const SpawnConfig(fourSpawnRate: 0.25); // 스피드는 4 타일 더 자주
+    if (_gameMode == GameMode.item) {
+      _spawnConfig = const SpawnConfig(fourSpawnRate: 0.25);
       _remainingSeconds = _speedInitialSeconds;
       _combo = 0;
       _comboMultiplier = 1.0;
@@ -162,9 +165,9 @@ class GameController extends ChangeNotifier {
         _remainingSeconds = 0;
         _speedTimer?.cancel();
         _status = GameStatus.timeUp;
-        if (_score > _bestSpeedScore) {
-          _bestSpeedScore = _score;
-          _saveBestSpeedScore();
+        if (_score > _bestItemScore) {
+          _bestItemScore = _score;
+          _saveBestItemScore();
         }
       }
       notifyListeners();
@@ -186,7 +189,7 @@ class GameController extends ChangeNotifier {
     _pushHistory();
     _board = result.board;
 
-    if (_gameMode == GameMode.speed) {
+    if (_gameMode == GameMode.item) {
       // 콤보 계산
       final now = DateTime.now();
       if (result.mergeCount > 0) {
@@ -225,9 +228,9 @@ class GameController extends ChangeNotifier {
       _remainingSeconds = (_remainingSeconds + timeBonus).clamp(0, 999);
 
       // 스피드 베스트 갱신
-      if (_score > _bestSpeedScore) {
-        _bestSpeedScore = _score;
-        _saveBestSpeedScore();
+      if (_score > _bestItemScore) {
+        _bestItemScore = _score;
+        _saveBestItemScore();
       }
 
     } else {
@@ -258,7 +261,7 @@ class GameController extends ChangeNotifier {
 
     if (isGameOver(_board)) {
       _status = GameStatus.gameOver;
-      if (_gameMode == GameMode.speed) _speedTimer?.cancel();
+      if (_gameMode == GameMode.item) _speedTimer?.cancel();
     }
 
     notifyListeners();

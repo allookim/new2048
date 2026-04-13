@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../core/theme/theme_controller.dart';
 import '../game/game_controller.dart';
 import '../models/game_mode.dart';
 
@@ -36,67 +35,49 @@ class _TimerBarState extends State<TimerBar> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.watch<ThemeController>().theme;
-
     return Consumer<GameController>(
       builder: (context, controller, _) {
-        if (controller.gameMode != GameMode.speed) return const SizedBox.shrink();
+        if (controller.gameMode != GameMode.item) return const SizedBox.shrink();
 
         final seconds = controller.remainingSeconds.clamp(0, 999);
         final progress = (seconds / 60.0).clamp(0.0, 1.0);
-        final isLow = seconds < 15;
-        final isMid = seconds < 30;
+        final isLow = seconds < 20;
+        const normalColor = Color(0xFFFFFFFF);
+        const lowColor = Color(0xFFFF6363);
+        final barColor = isLow ? lowColor : normalColor;
 
         _updateBlink(isLow);
 
-        final barColor = isLow
-            ? Colors.red.shade400
-            : isMid
-                ? Colors.orange.shade400
-                : const Color(0xFF6DDDD0);
-
-        final timeDisplay = seconds >= 10
-            ? seconds.toStringAsFixed(1)
-            : seconds.toStringAsFixed(1);
-
         return Padding(
           padding: const EdgeInsets.only(top: 6, bottom: 2),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 타이머 프로그레스 바
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 8,
-                  backgroundColor: theme.boardColor,
-                  valueColor: AlwaysStoppedAnimation(barColor),
+          child: AnimatedOpacity(
+            opacity: isLow ? (_blink ? 1.0 : 0.3) : 1.0,
+            duration: const Duration(milliseconds: 100),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(999),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 8,
+                    backgroundColor: const Color(0x4D000000),
+                    valueColor: AlwaysStoppedAnimation(barColor),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 5),
-              // 시간 표시
-              AnimatedOpacity(
-                opacity: isLow ? (_blink ? 1.0 : 0.3) : 1.0,
-                duration: const Duration(milliseconds: 100),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.timer_rounded, size: 15, color: barColor),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${timeDisplay}s',
-                      style: TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: isLow ? 17 : 14,
-                        fontWeight: FontWeight.w900,
-                        color: barColor,
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 4),
+                Text(
+                  '${seconds.toStringAsFixed(1)}s',
+                  style: TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: barColor,
+                    letterSpacing: -0.48,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },

@@ -131,10 +131,7 @@ class _TileWidgetState extends State<TileWidget>
               // 1. 물고기 (최하단)
               if (hasValue && fishAsset != null)
                 Image.asset(fishAsset, fit: BoxFit.contain),
-              // 2. 물방울 버블 배경 (물고기 위)
-              if (hasValue && theme.tileBgAsset != null)
-                Image.asset(theme.tileBgAsset!, fit: BoxFit.contain),
-              // 3. 숫자
+              // 2. 숫자
               if (hasValue)
                 Center(
                   child: Transform(
@@ -306,7 +303,8 @@ class _TileWidgetState extends State<TileWidget>
     if (type == TileType.normal) return child;
 
     final badgeSize   = widget.size * 0.35;
-    final badgeOffset = widget.size * 0.07;
+    // 원형 타일 45° 경계 바깥에 뱃지 중심이 오도록
+    final badgeOffset = -(widget.size * 0.03);
 
     return Stack(
       clipBehavior: Clip.none,

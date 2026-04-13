@@ -13,6 +13,8 @@ class UpgradeTileSkill extends Skill {
   @override
   IconData get icon => Icons.arrow_upward;
   @override
+  String? get svgAsset => 'assets/images/ic_item_upgrade.svg';
+  @override
   int get maxUsesPerGame => 1;
   @override
   bool get requiresTarget => true;

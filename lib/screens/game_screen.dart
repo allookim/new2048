@@ -11,9 +11,9 @@ import '../models/game_mode.dart';
 import '../widgets/game_board.dart';
 import '../widgets/game_over_overlay.dart';
 import '../widgets/skill_bar.dart';
-import '../widgets/time_up_overlay.dart';
 import '../widgets/timer_bar.dart';
 import '../widgets/win_overlay.dart';
+import 'ranking_screen.dart';
 import 'settings_screen.dart';
 import 'theme_screen.dart';
 
@@ -126,7 +126,6 @@ class _GameScreenState extends State<GameScreen>
                           GameBoard(),
                           GameOverOverlay(),
                           WinOverlay(),
-                          TimeUpOverlay(),
                         ],
                       ),
                     );
@@ -177,11 +176,7 @@ class _GameScreenState extends State<GameScreen>
                 top: boardTop, left: 0, right: 0,
                 child: const GameBoard(),
               ),
-              // Overlays — full screen
-              const Positioned.fill(child: GameOverOverlay()),
-              const Positioned.fill(child: WinOverlay()),
-              const Positioned.fill(child: TimeUpOverlay()),
-              // SkillBar — bottom
+              // SkillBar — bottom (overlays 아래 레이어)
               Positioned(
                 bottom: 32, left: 24, right: 24,
                 child: const SkillBar(),
@@ -191,6 +186,9 @@ class _GameScreenState extends State<GameScreen>
                   bottom: 0, left: 0, right: 0,
                   child: _HomeIndicator(),
                 ),
+              // Overlays — full screen (최상단 레이어)
+              const Positioned.fill(child: GameOverOverlay()),
+              const Positioned.fill(child: WinOverlay()),
             ],
           );
         },
@@ -396,9 +394,9 @@ class _ScoreRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<GameController>(
       builder: (_, gc, __) {
-        final isSpeed = gc.gameMode == GameMode.speed;
-        final bestLabel = isSpeed ? 'BEST ⚡' : 'BEST';
-        final bestValue = isSpeed ? gc.bestSpeedScore : gc.bestScore;
+        final isItem = gc.gameMode == GameMode.item;
+        final bestLabel = isItem ? 'BEST ⚡' : 'BEST';
+        final bestValue = isItem ? gc.bestItemScore : gc.bestScore;
         return Row(
           children: [
             Expanded(child: _ScoreBox(label: 'SCORE', value: gc.score)),
@@ -598,7 +596,7 @@ class _FullScreenDrawer extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _MenuItem(
-                        label: 'Normal',
+                        label: 'Normal Mode',
                         isActive: currentMode == GameMode.normal,
                         onTap: () => onSelectNewLayout(GameMode.normal),
                       ),
@@ -607,14 +605,20 @@ class _FullScreenDrawer extends StatelessWidget {
                         isActive: currentMode == GameMode.item,
                         onTap: () => onSelectNewLayout(GameMode.item),
                       ),
-                      _MenuItem(
-                        label: 'Speed Mode',
-                        isActive: currentMode == GameMode.speed,
-                        onTap: () => onSelectNewLayout(GameMode.speed),
-                      ),
                       const SizedBox(height: 12),
                       Container(height: 1, color: Colors.white12),
                       const SizedBox(height: 12),
+                      _MenuItem(
+                        label: 'Ranking',
+                        onTap: () {
+                          onClose();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const RankingScreen()),
+                          );
+                        },
+                      ),
                       _MenuItem(
                         label: 'Theme',
                         onTap: () {
@@ -648,63 +652,118 @@ class _FullScreenDrawer extends StatelessWidget {
   }
 }
 
-// ── Combo badge (speed mode, above board) ────────────────────
+// ── Combo badge ───────────────────────────────────────────────
 
-class _ComboBadgeRow extends StatelessWidget {
+class _ComboBadgeRow extends StatefulWidget {
   const _ComboBadgeRow();
+
+  @override
+  State<_ComboBadgeRow> createState() => _ComboBadgeRowState();
+}
+
+class _ComboBadgeRowState extends State<_ComboBadgeRow>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+  late final Animation<double> _scale;
+  late final Animation<double> _flash;
+  int _lastCombo = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.35), weight: 30),
+      TweenSequenceItem(tween: Tween(begin: 1.35, end: 0.92), weight: 35),
+      TweenSequenceItem(tween: Tween(begin: 0.92, end: 1.0), weight: 35),
+    ]).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
+    _flash = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 80),
+    ]).animate(_ctrl);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _triggerAnim(int combo) {
+    if (combo >= 2 && combo != _lastCombo) {
+      _ctrl.forward(from: 0);
+    }
+    _lastCombo = combo;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<GameController>(
       builder: (_, gc, __) {
-        if (gc.gameMode != GameMode.speed || gc.combo < 2) {
-          return const SizedBox(height: 42);
+        _triggerAnim(gc.combo);
+
+        if (gc.gameMode != GameMode.item || gc.combo < 2) {
+          return const SizedBox(height: 35);
         }
+
         return SizedBox(
-          height: 42,
+          height: 35,
           child: Center(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: Container(
-                key: ValueKey(gc.combo),
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF6DDDD0),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${gc.combo} COMBO',
-                      style: const TextStyle(
-                        fontFamily: 'Nunito',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF1E1460),
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: const Color(0x331E1460),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        '×${gc.comboMultiplier.toStringAsFixed(1)}',
-                        style: const TextStyle(
-                          fontFamily: 'Nunito',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF1E1460),
+            child: AnimatedBuilder(
+              animation: _ctrl,
+              builder: (context, _) {
+                final bgColor = Color.lerp(
+                  const Color(0xFF7DFDF0),
+                  Colors.white,
+                  _flash.value,
+                )!;
+                return Transform.scale(
+                  scale: _scale.value,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: BorderRadius.circular(999),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF7DFDF0).withValues(alpha: _flash.value * 0.5),
+                          blurRadius: 10 + _flash.value * 10,
+                          spreadRadius: _flash.value * 3,
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${gc.combo}',
+                          style: const TextStyle(
+                            fontFamily: 'Nunito',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF27085D),
+                            letterSpacing: -0.54,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'COMBO!',
+                          style: TextStyle(
+                            fontFamily: 'Nunito',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF27085D),
+                            letterSpacing: 0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         );
@@ -744,7 +803,7 @@ class _MenuItem extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Nunito',
-              fontSize: 26,
+              fontSize: 30,
               fontWeight: FontWeight.w900,
               color: isActive ? const Color(0xFFB5762A) : Colors.white,
             ),
@@ -764,42 +823,41 @@ class _FigmaScore extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<GameController>(
       builder: (_, gc, __) {
-        final isSpeed = gc.gameMode == GameMode.speed;
-        final bestValue = isSpeed ? gc.bestSpeedScore : gc.bestScore;
+        final bestValue = gc.gameMode == GameMode.item ? gc.bestItemScore : gc.bestScore;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              isSpeed ? '⚡ $bestValue' : '😎 $bestValue',
-              textAlign: TextAlign.left,
-              style: const TextStyle(
-                fontFamily: 'Nunito',
-                fontSize: 18,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-                letterSpacing: -0.5,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SvgPicture.asset(
+                  'assets/images/ic_best.svg',
+                  width: 18,
+                  height: 18,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '$bestValue',
+                  textAlign: TextAlign.left,
+                  style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              transitionBuilder: (child, anim) => SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, -0.5),
-                  end: Offset.zero,
-                ).animate(anim),
-                child: FadeTransition(opacity: anim, child: child),
-              ),
-              child: _StrokeText(
-                key: ValueKey(gc.score),
-                text: '${gc.score}',
-                fontSize: 50,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -1.5,
-                fillColor: Colors.white,
-                strokeColor: const Color(0xFF006494),
-                strokeWidth: 3,
-              ),
+            _StrokeText(
+              text: '${gc.score}',
+              fontSize: 50,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1.5,
+              fillColor: Colors.white,
+              strokeColor: const Color(0xFF006494),
+              strokeWidth: 8,
             ),
           ],
         );
@@ -934,15 +992,25 @@ class _PauseMenu extends StatelessWidget {
             ),
             // Buttons
             Expanded(
-              child: Align(
-                alignment: const Alignment(0, -0.3),
+              child: Center(
                 child: SizedBox(
-                  width: 320,
+                  width: 280,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _PauseMenuItem(label: 'Play game', onTap: onResume),
-                      _PauseMenuItem(label: 'Restart game', onTap: onRestart),
+                      _PauseMenuItem(
+                        label: 'Play game',
+                        onTap: onResume,
+                        bgColor: const Color(0xFF6DDDD0),
+                        textColor: const Color(0xFF1E1460),
+                      ),
+                      const SizedBox(height: 16),
+                      _PauseMenuItem(
+                        label: 'Restart game',
+                        onTap: onRestart,
+                        bgColor: Colors.white.withValues(alpha: 0.15),
+                        textColor: Colors.white,
+                      ),
                     ],
                   ),
                 ),
@@ -958,26 +1026,38 @@ class _PauseMenu extends StatelessWidget {
 class _PauseMenuItem extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
-  const _PauseMenuItem({required this.label, required this.onTap});
+  final Color bgColor;
+  final Color textColor;
+  const _PauseMenuItem({
+    required this.label,
+    required this.onTap,
+    required this.bgColor,
+    required this.textColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: 'Nunito',
-              fontSize: 36,
+              fontSize: 28,
               fontWeight: FontWeight.w900,
-              color: Colors.white,
+              color: textColor,
             ),
           ),
         ),

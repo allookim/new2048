@@ -13,6 +13,8 @@ class RemoveTileSkill extends Skill {
   @override
   IconData get icon => Icons.close;
   @override
+  String? get svgAsset => 'assets/images/ic_item_remove.svg';
+  @override
   int get maxUsesPerGame => 2;
   @override
   bool get requiresTarget => true;

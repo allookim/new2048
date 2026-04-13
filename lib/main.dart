@@ -1,10 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/theme/theme_controller.dart';
 import 'game/game_controller.dart';
 import 'screens/splash_screen.dart';
+import 'services/supabase_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Supabase.initialize(
+      url: 'https://hifomhsghpjceidveplk.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhpZm9taHNnaHBqY2VpZHZlcGxrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNjA3MjYsImV4cCI6MjA5MTYzNjcyNn0.RkYVnK8ZnJjEoOljtuG53zoXn-3Wk5aHNRbQvS-BwAY',
+    );
+    await SupabaseService.instance.init();
+  } catch (e) {
+    debugPrint('Supabase setup error: $e');
+  }
   runApp(const App());
 }
 

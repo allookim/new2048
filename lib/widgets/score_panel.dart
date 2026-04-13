@@ -13,8 +13,8 @@ class ScorePanel extends StatelessWidget {
 
     return Consumer<GameController>(
       builder: (context, controller, _) {
-        final isSpeed = controller.gameMode == GameMode.speed;
-        final bestValue = isSpeed ? controller.bestSpeedScore : controller.bestScore;
+        final isSpeed = controller.gameMode == GameMode.item;
+        final bestValue = isSpeed ? controller.bestItemScore : controller.bestScore;
         final bestLabel = isSpeed ? 'BEST⚡' : 'BEST';
 
         return Column(

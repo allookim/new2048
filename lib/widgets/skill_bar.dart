@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/theme_controller.dart';
 import '../game/game_controller.dart';
@@ -10,11 +11,12 @@ class SkillBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.watch<ThemeController>().theme;
+    final btnColor = theme.buttonColor;
+    final bgColor = theme.backgroundColor;
 
     return Consumer<GameController>(
       builder: (context, controller, _) {
-        // 노멀 모드에서는 스킬바 숨김
-        if (controller.gameMode == GameMode.normal) {
+        if (controller.gameMode != GameMode.item) {
           return const SizedBox.shrink();
         }
 
@@ -30,6 +32,7 @@ class SkillBar extends StatelessWidget {
                   final remaining = inventory.remaining(skill.id);
                   final isActive = controller.activeSkillId == skill.id;
                   final canUse = remaining > 0 && skill.canUse(controller.board, controller.score);
+                  final iconColor = isActive ? Colors.white : Colors.white;
                   return GestureDetector(
                     onTap: canUse ? () => controller.activateSkill(skill.id) : null,
                     child: AnimatedContainer(
@@ -37,20 +40,27 @@ class SkillBar extends StatelessWidget {
                       height: 42,
                       decoration: BoxDecoration(
                         color: isActive
-                            ? const Color(0xFF006494)
+                            ? btnColor
                             : canUse
-                                ? Colors.white
-                                : Colors.white.withValues(alpha: 0.4),
+                                ? btnColor.withValues(alpha: 0.85)
+                                : btnColor.withValues(alpha: 0.4),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            skill.icon,
-                            size: 18,
-                            color: isActive ? Colors.white : const Color(0xFF006494),
-                          ),
+                          if (skill.svgAsset != null)
+                            SvgPicture.asset(
+                              skill.svgAsset!,
+                              width: 22,
+                              height: 22,
+                              colorFilter: ColorFilter.mode(
+                                iconColor,
+                                BlendMode.srcIn,
+                              ),
+                            )
+                          else
+                            Icon(skill.icon, size: 18, color: iconColor),
                           const SizedBox(width: 6),
                           Text(
                             skill.name,
@@ -58,27 +68,29 @@ class SkillBar extends StatelessWidget {
                               fontFamily: 'Nunito',
                               fontSize: 17,
                               fontWeight: FontWeight.w800,
-                              color: isActive ? Colors.white : const Color(0xFF006494),
+                              color: iconColor,
                               letterSpacing: -0.51,
                             ),
                           ),
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            width: 22,
+                            height: 22,
                             decoration: BoxDecoration(
                               color: isActive
-                                  ? Colors.white.withValues(alpha: 0.3)
-                                  : const Color(0xFF006494),
-                              borderRadius: BorderRadius.circular(50),
+                                  ? Colors.white.withValues(alpha: 0.25)
+                                  : bgColor.withValues(alpha: 0.5),
+                              shape: BoxShape.circle,
                             ),
+                            alignment: Alignment.center,
                             child: Text(
                               '$remaining',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 fontFamily: 'Nunito',
-                                fontSize: 14,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w800,
-                                color: isActive ? Colors.white : Colors.white,
-                                letterSpacing: -0.42,
+                                color: Colors.white,
+                                letterSpacing: -0.4,
                               ),
                             ),
                           ),

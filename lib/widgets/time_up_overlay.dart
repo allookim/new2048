@@ -48,7 +48,7 @@ class _TimeUpOverlayState extends State<TimeUpOverlay>
   Widget build(BuildContext context) {
     return Consumer<GameController>(
       builder: (context, gc, _) {
-        final visible = gc.gameMode == GameMode.speed &&
+        final visible = gc.gameMode == GameMode.item &&
             gc.status == GameStatus.timeUp;
         WidgetsBinding.instance
             .addPostFrameCallback((_) => _handleVisibility(visible));
@@ -89,7 +89,7 @@ class _TimeUpContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final score = gc.score;
-    final best = gc.bestSpeedScore;
+    final best = gc.bestItemScore;
     final isNewBest = score > 0 && score >= best;
 
     return Padding(
