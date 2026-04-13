@@ -155,7 +155,12 @@ class _GameScreenState extends State<GameScreen>
           final boardTop = constraints.maxHeight * 0.30;
           return Stack(
             children: [
-              // Header & score — top
+              // Board — starts at 30% of screen height
+              Positioned(
+                top: boardTop, left: 0, right: 0,
+                child: const GameBoard(),
+              ),
+              // Header & score — top (board 위 레이어)
               Positioned(
                 top: 0, left: 24, right: 24,
                 child: Column(
@@ -169,12 +174,6 @@ class _GameScreenState extends State<GameScreen>
                     const _ComboBadgeRow(),
                   ],
                 ),
-              ),
-              // Board — starts at 35% of screen height
-              // Board
-              Positioned(
-                top: boardTop, left: 0, right: 0,
-                child: const GameBoard(),
               ),
               // SkillBar — bottom (overlays 아래 레이어)
               Positioned(
