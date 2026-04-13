@@ -790,23 +790,69 @@ class _FigmaScore extends StatelessWidget {
                 ).animate(anim),
                 child: FadeTransition(opacity: anim, child: child),
               ),
-              child: Text(
-                '${gc.score}',
+              child: _StrokeText(
                 key: ValueKey(gc.score),
-                textAlign: TextAlign.left,
-                style: const TextStyle(
-                  fontFamily: 'Nunito',
-                  fontSize: 50,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -1.5,
-                  height: 1.1,
-                ),
+                text: '${gc.score}',
+                fontSize: 50,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -1.5,
+                fillColor: Colors.white,
+                strokeColor: const Color(0xFF006494),
+                strokeWidth: 3,
               ),
             ),
           ],
         );
       },
+    );
+  }
+}
+
+// ── Stroke Text ──────────────────────────────────────────────
+
+class _StrokeText extends StatelessWidget {
+  final String text;
+  final double fontSize;
+  final FontWeight fontWeight;
+  final double letterSpacing;
+  final Color fillColor;
+  final Color strokeColor;
+  final double strokeWidth;
+
+  const _StrokeText({
+    super.key,
+    required this.text,
+    required this.fontSize,
+    required this.fontWeight,
+    required this.letterSpacing,
+    required this.fillColor,
+    required this.strokeColor,
+    required this.strokeWidth,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final base = TextStyle(
+      fontFamily: 'Nunito',
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      letterSpacing: letterSpacing,
+      height: 1.1,
+    );
+    return Stack(
+      children: [
+        Text(
+          text,
+          style: base.copyWith(
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = strokeWidth
+              ..strokeJoin = StrokeJoin.round
+              ..color = strokeColor,
+          ),
+        ),
+        Text(text, style: base.copyWith(color: fillColor)),
+      ],
     );
   }
 }
