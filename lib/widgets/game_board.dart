@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/theme_controller.dart';
@@ -195,7 +196,9 @@ class _CircleImageTile extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: Image.asset(asset, fit: BoxFit.contain),
+      child: asset.endsWith('.svg')
+          ? SvgPicture.asset(asset, fit: BoxFit.contain)
+          : Image.asset(asset, fit: BoxFit.contain),
     );
   }
 }

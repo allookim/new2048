@@ -21,7 +21,7 @@ const seaTheme = GameThemeData(
   isCircleTile: true,
   backgroundAsset: 'assets/images/bg_sea.png',
   backgroundVideoAsset: 'assets/images/bg_sea.mp4',
-  tileBgAsset: 'assets/tiles/Tile-sea-bg.png',
+  tileBgAsset: 'assets/tiles/Tile-sea-bg.svg',
   tileFishAssets: {
     2:   'assets/tiles/Tile-sea-bg-fish-1.png',
     4:   'assets/tiles/Tile-sea-bg-fish-2.png',
