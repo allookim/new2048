@@ -307,7 +307,7 @@ class _TileWidgetState extends State<TileWidget>
     final type = widget.tile.tileType;
     if (type == TileType.normal) return child;
 
-    final badgeSize   = widget.size * 0.4;
+    final badgeSize   = widget.size * 0.35;
     final badgeOffset = widget.size * 0.075;
 
     return Stack(
@@ -379,13 +379,15 @@ class _LockBadge extends StatelessWidget {
             width: size,
             height: size,
           ),
-          Transform.scale(
-            scaleX: -1,
-            child: CircularProgressIndicator(
-              value: frozenTurns / 8.0,
-              strokeWidth: 2.8,
-              backgroundColor: const Color(0xFF2b0802),
-              valueColor: const AlwaysStoppedAnimation(Color(0xFFff5757)),
+          Positioned.fill(
+            child: Transform.scale(
+              scaleX: -1,
+              child: CircularProgressIndicator(
+                value: frozenTurns / 8.0,
+                strokeWidth: 2.8,
+                backgroundColor: const Color(0xFF2b0802),
+                valueColor: const AlwaysStoppedAnimation(Color(0xFFff5757)),
+              ),
             ),
           ),
         ],
