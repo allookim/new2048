@@ -342,21 +342,22 @@ class _TileWidgetState extends State<TileWidget>
           right: 3,
           child: _SpecialBadge(type: type, tileSize: widget.size),
         ),
-        if (type == TileType.ice && widget.tile.frozenTurns > 0)
+        if ((type == TileType.ice || type == TileType.lock) && widget.tile.frozenTurns > 0)
           Positioned(
             bottom: 4,
             left: 0,
             right: 0,
             child: Center(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 decoration: BoxDecoration(
-                  color: const Color(0xCC00BFFF),
+                  color: type == TileType.lock
+                      ? const Color(0xCC888888)
+                      : const Color(0xCC00BFFF),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Text(
-                  '${widget.tile.frozenTurns}턴',
+                  '${widget.tile.frozenTurns}',
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,

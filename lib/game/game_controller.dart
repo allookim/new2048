@@ -271,16 +271,16 @@ class GameController extends ChangeNotifier {
     return 3.0;
   }
 
-  /// 얼음 타일 카운트다운: 매 턴 1씩 감소, 0이 되면 일반 타일로 해동
+  /// 얼음·잠금 타일 카운트다운: 매 턴 1씩 감소, 0이 되면 일반 타일로 전환
   void _decrementFrozenTiles() {
     for (int r = 0; r < 4; r++) {
       for (int c = 0; c < 4; c++) {
         final tile = _board[r][c];
-        if (tile == null || tile.tileType != TileType.ice) continue;
+        if (tile == null) continue;
+        if (tile.tileType != TileType.ice && tile.tileType != TileType.lock) continue;
 
         final remaining = tile.frozenTurns - 1;
         if (remaining <= 0) {
-          // 해동 — 일반 타일로 전환, 머지 애니메이션으로 반짝임
           _board[r][c] = tile.copyWith(
             tileType: TileType.normal,
             frozenTurns: 0,
@@ -391,7 +391,7 @@ class GameController extends ChangeNotifier {
       col: cell.$2,
       isNew: true,
       tileType: tileType,
-      frozenTurns: tileType == TileType.ice ? 3 : 0,
+      frozenTurns: tileType == TileType.ice ? 3 : (tileType == TileType.lock ? 8 : 0),
     );
   }
 
