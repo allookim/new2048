@@ -133,9 +133,7 @@ class _TileWidgetState extends State<TileWidget>
                 Image.asset(fishAsset, fit: BoxFit.contain),
               // 2. 물방울 버블 배경 (물고기 위)
               if (hasValue && theme.tileBgAsset != null)
-                theme.tileBgAsset!.endsWith('.svg')
-                    ? SvgPicture.asset(theme.tileBgAsset!, fit: BoxFit.contain)
-                    : Image.asset(theme.tileBgAsset!, fit: BoxFit.contain),
+                Image.asset(theme.tileBgAsset!, fit: BoxFit.contain),
               // 3. 숫자
               if (hasValue)
                 Center(

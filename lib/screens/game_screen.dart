@@ -55,6 +55,7 @@ class _GameScreenState extends State<GameScreen>
 
   void _precacheTileImages() {
     const assets = [
+      'assets/tiles/Tile-sea-bg.png',
       'assets/tiles/Tile-sea-bg-fish-1.png',
       'assets/tiles/Tile-sea-bg-fish-2.png',
       'assets/tiles/Tile-sea-bg-fish-3.png',

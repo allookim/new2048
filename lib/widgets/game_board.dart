@@ -196,9 +196,7 @@ class _CircleImageTile extends StatelessWidget {
     return SizedBox(
       width: size,
       height: size,
-      child: asset.endsWith('.svg')
-          ? SvgPicture.asset(asset, fit: BoxFit.contain)
-          : Image.asset(asset, fit: BoxFit.contain),
+      child: Image.asset(asset, fit: BoxFit.contain),
     );
   }
 }
