@@ -113,6 +113,7 @@ class _TileWidgetState extends State<TileWidget>
 
   Widget _buildSeaTile(dynamic theme) {
     final hasValue = widget.tile.value > 0;
+    final fishAsset = theme.tileFishAssetForValue(widget.tile.value);
     final wiperRad = _inMergeAnim ? 0.0 : widget.wiperAngle * pi / 180;
     return AnimatedBuilder(
       animation: _scaleAnimation,
@@ -127,17 +128,14 @@ class _TileWidgetState extends State<TileWidget>
           child: Stack(
             fit: StackFit.expand,
             children: [
-              // 버블 배경 (빈 타일만) — TileWidget에서는 game_board가 담당하므로 생략
-              // 숫자 타일: 물고기 배경 + 외부 원형 그림자 + 숫자
-              if (hasValue && theme.tileFishAssetForValue(widget.tile.value) != null) ...[
-                SizedBox(
-                  width: widget.size,
-                  height: widget.size,
-                  child: Image.asset(
-                    theme.tileFishAssetForValue(widget.tile.value)!,
-                    fit: BoxFit.contain,
-                  ),
-                ),
+              // 1. 물고기 (최하단)
+              if (hasValue && fishAsset != null)
+                Image.asset(fishAsset, fit: BoxFit.contain),
+              // 2. 물방울 버블 배경 (물고기 위)
+              if (hasValue && theme.tileBgAsset != null)
+                Image.asset(theme.tileBgAsset!, fit: BoxFit.contain),
+              // 3. 숫자
+              if (hasValue)
                 Center(
                   child: Transform(
                     transform: Matrix4.rotationZ(wiperRad),
@@ -160,7 +158,7 @@ class _TileWidgetState extends State<TileWidget>
                     ),
                   ),
                 ),
-              ],
+              // 4. 아이템 뱃지 → _withSpecialOverlay 에서 최상단 처리
             ],
           ),
         ),
