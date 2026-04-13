@@ -16,12 +16,110 @@ class _RankingScreenState extends State<RankingScreen>
   int? _normalMyRank;
   int? _itemMyRank;
   bool _loading = true;
+  String? _myNickname;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _load();
+    _checkNickname();
+  }
+
+  Future<void> _checkNickname() async {
+    final nickname = await SupabaseService.instance.getNickname();
+    if (!mounted) return;
+    _myNickname = nickname;
+    // 닉네임 미설정('Player' 또는 null)이면 자동으로 다이얼로그 표시
+    if (nickname == null || nickname == 'Player') {
+      await Future.delayed(const Duration(milliseconds: 400));
+      if (mounted) _showNicknameDialog(isFirst: true);
+    }
+  }
+
+  Future<void> _showNicknameDialog({bool isFirst = false}) async {
+    final controller = TextEditingController(
+      text: (_myNickname == null || _myNickname == 'Player') ? '' : _myNickname,
+    );
+    await showDialog(
+      context: context,
+      barrierDismissible: !isFirst,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1a2d6e),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          isFirst ? 'Set your nickname' : 'Change nickname',
+          style: const TextStyle(
+            fontFamily: 'Nunito',
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 14,
+          style: const TextStyle(
+            fontFamily: 'Nunito',
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+            fontSize: 16,
+          ),
+          decoration: InputDecoration(
+            hintText: 'Enter nickname',
+            hintStyle: const TextStyle(color: Colors.white38),
+            counterStyle: const TextStyle(color: Colors.white38),
+            filled: true,
+            fillColor: const Color(0xFF0a1e4a),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFF6DDDD0), width: 1.5),
+            ),
+          ),
+        ),
+        actions: [
+          if (!isFirst)
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  color: Colors.white54,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          TextButton(
+            onPressed: () async {
+              final name = controller.text.trim();
+              if (name.isEmpty) return;
+              await SupabaseService.instance.setNickname(name);
+              if (ctx.mounted) Navigator.of(ctx).pop();
+              if (mounted) {
+                setState(() => _myNickname = name);
+                _load();
+              }
+            },
+            child: const Text(
+              'Save',
+              style: TextStyle(
+                fontFamily: 'Nunito',
+                color: Color(0xFF6DDDD0),
+                fontWeight: FontWeight.w900,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
   }
 
   @override
@@ -64,6 +162,13 @@ class _RankingScreenState extends State<RankingScreen>
             color: Colors.white,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person, color: Colors.white70),
+            tooltip: 'Change nickname',
+            onPressed: () => _showNicknameDialog(),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: const Color(0xFF6DDDD0),

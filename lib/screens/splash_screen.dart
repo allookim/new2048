@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/theme/theme_controller.dart';
+import '../core/theme/theme_registry.dart';
 import 'game_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -33,6 +34,17 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward();
 
     Future.delayed(const Duration(milliseconds: 1800), _goToGame);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // 모든 테마의 배경 이미지 미리 캐싱
+    for (final theme in themeRegistry.values) {
+      if (theme.backgroundAsset != null) {
+        precacheImage(AssetImage(theme.backgroundAsset!), context);
+      }
+    }
   }
 
   void _goToGame() {
