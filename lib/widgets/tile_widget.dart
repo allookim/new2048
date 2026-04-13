@@ -308,7 +308,7 @@ class _TileWidgetState extends State<TileWidget>
     if (type == TileType.normal) return child;
 
     final badgeSize   = widget.size * 0.35;
-    final badgeOffset = widget.size * 0.075;
+    final badgeOffset = widget.size * 0.07;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -316,14 +316,14 @@ class _TileWidgetState extends State<TileWidget>
         child,
         if (_isArrowType(type))
           Positioned(
-            top: -badgeOffset,
-            right: -badgeOffset,
+            top: badgeOffset,
+            right: badgeOffset,
             child: _ArrowBadge(type: type, size: badgeSize),
           ),
         if (type == TileType.lock)
           Positioned(
-            top: -badgeOffset,
-            right: -badgeOffset,
+            top: badgeOffset,
+            right: badgeOffset,
             child: _LockBadge(frozenTurns: widget.tile.frozenTurns, size: badgeSize),
           ),
       ],
