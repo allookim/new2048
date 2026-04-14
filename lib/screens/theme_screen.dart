@@ -55,10 +55,12 @@ class ThemeScreen extends StatelessWidget {
               ),
             ),
 
+            const SizedBox(height: 28),
+
             // ── Theme List ───────────────────────────────────
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
                 itemCount: themes.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {

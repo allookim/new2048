@@ -236,9 +236,11 @@ class _RankingScreenState extends State<RankingScreen> {
               ),
             ),
 
+            const SizedBox(height: 28),
+
             // ── Pill Tab ─────────────────────────────────────
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: _PillTab(
                 labels: const ['Normal', 'Item Mode'],
                 selectedIndex: _tabIndex,
