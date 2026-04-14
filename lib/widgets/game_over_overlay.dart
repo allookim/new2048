@@ -5,7 +5,8 @@ import '../models/game_state.dart';
 import '../models/game_mode.dart';
 
 class GameOverOverlay extends StatefulWidget {
-  const GameOverOverlay({super.key});
+  final VoidCallback? onEndGame;
+  const GameOverOverlay({super.key, this.onEndGame});
 
   @override
   State<GameOverOverlay> createState() => _GameOverOverlayState();
@@ -72,7 +73,7 @@ class _GameOverOverlayState extends State<GameOverOverlay>
                     child: child,
                   ),
                 ),
-                child: _GameOverContent(gc: gc),
+                child: _GameOverContent(gc: gc, onEndGame: widget.onEndGame),
               ),
             ),
           ),
@@ -84,7 +85,8 @@ class _GameOverOverlayState extends State<GameOverOverlay>
 
 class _GameOverContent extends StatelessWidget {
   final GameController gc;
-  const _GameOverContent({required this.gc});
+  final VoidCallback? onEndGame;
+  const _GameOverContent({required this.gc, this.onEndGame});
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +176,58 @@ class _GameOverContent extends StatelessWidget {
           const SizedBox(height: 36),
 
           _PlayAgainButton(onPressed: gc.newGame),
+          if (onEndGame != null) ...[
+            const SizedBox(height: 12),
+            _EndGameButton(onPressed: onEndGame!),
+          ],
         ],
+      ),
+    );
+  }
+}
+
+class _EndGameButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  const _EndGameButton({required this.onPressed});
+
+  @override
+  State<_EndGameButton> createState() => _EndGameButtonState();
+}
+
+class _EndGameButtonState extends State<_EndGameButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onPressed();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.93 : 1.0,
+        duration: const Duration(milliseconds: 80),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Text(
+            'END GAME',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: 2,
+            ),
+          ),
+        ),
       ),
     );
   }

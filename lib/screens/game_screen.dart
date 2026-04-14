@@ -121,11 +121,14 @@ class _GameScreenState extends State<GameScreen>
                     return SizedBox(
                       width: size,
                       height: size,
-                      child: const Stack(
+                      child: Stack(
                         children: [
-                          GameBoard(),
-                          GameOverOverlay(),
-                          WinOverlay(),
+                          const GameBoard(),
+                          GameOverOverlay(onEndGame: () {
+                            context.read<GameController>().newGame();
+                            _openDrawer();
+                          }),
+                          const WinOverlay(),
                         ],
                       ),
                     );
@@ -186,7 +189,10 @@ class _GameScreenState extends State<GameScreen>
                   child: _HomeIndicator(),
                 ),
               // Overlays — full screen (최상단 레이어)
-              const Positioned.fill(child: GameOverOverlay()),
+              Positioned.fill(child: GameOverOverlay(onEndGame: () {
+                context.read<GameController>().newGame();
+                _openDrawer();
+              })),
               const Positioned.fill(child: WinOverlay()),
             ],
           );
@@ -254,6 +260,11 @@ class _GameScreenState extends State<GameScreen>
                         onRestart: () {
                           _pauseController.value = 0;
                           context.read<GameController>().newGame();
+                        },
+                        onEndGame: () {
+                          _pauseController.value = 0;
+                          context.read<GameController>().newGame();
+                          _openDrawer();
                         },
                       ),
                     ),
@@ -968,7 +979,8 @@ class _VideoBackgroundState extends State<_VideoBackground> {
 class _PauseMenu extends StatelessWidget {
   final VoidCallback onResume;
   final VoidCallback onRestart;
-  const _PauseMenu({required this.onResume, required this.onRestart});
+  final VoidCallback onEndGame;
+  const _PauseMenu({required this.onResume, required this.onRestart, required this.onEndGame});
 
   @override
   Widget build(BuildContext context) {
@@ -1009,6 +1021,13 @@ class _PauseMenu extends StatelessWidget {
                         onTap: onRestart,
                         bgColor: Colors.white.withValues(alpha: 0.15),
                         textColor: Colors.white,
+                      ),
+                      const SizedBox(height: 16),
+                      _PauseMenuItem(
+                        label: 'End game',
+                        onTap: onEndGame,
+                        bgColor: Colors.white.withValues(alpha: 0.08),
+                        textColor: Colors.white70,
                       ),
                     ],
                   ),
