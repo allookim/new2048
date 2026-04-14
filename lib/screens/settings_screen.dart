@@ -211,7 +211,8 @@ class _AccountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: _kCard,
         borderRadius: BorderRadius.circular(_kRadius),
@@ -315,8 +316,10 @@ class _ToggleTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+    return SizedBox(
+      height: 56,
+      child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           Icon(icon, color: _kAccent, size: 22),
@@ -341,10 +344,9 @@ class _ToggleTile extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 }
-
 
 class _InfoTile extends StatelessWidget {
   final IconData icon;
@@ -360,7 +362,8 @@ class _InfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: _kCard,
         borderRadius: BorderRadius.circular(_kRadiusFull),
