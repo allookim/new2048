@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'game_theme_data.dart';
 import 'theme_registry.dart';
-import 'themes/classic_theme.dart';
 import 'themes/sea_theme.dart';
 
 class ThemeController extends ChangeNotifier {
@@ -10,7 +9,7 @@ class ThemeController extends ChangeNotifier {
 
   GameThemeData _currentTheme = seaTheme;
   String _currentThemeId = 'sea';
-  final Set<String> _unlockedThemes = {'classic', 'dark_neon', 'pixel', 'basic', 'sea'};
+  final Set<String> _unlockedThemes = {'basic', 'sea'};
 
   GameThemeData get theme => _currentTheme;
   String get currentThemeId => _currentThemeId;

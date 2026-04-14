@@ -148,7 +148,22 @@ class _ThemeCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 20),
               child: isLocked
-                  ? const Icon(Icons.lock_rounded, color: Colors.white38, size: 22)
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Text(
+                        'Coming Soon',
+                        style: TextStyle(
+                          fontFamily: 'Nunito',
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                          color: Colors.white54,
+                        ),
+                      ),
+                    )
                   : isSelected
                       ? const Icon(Icons.check_circle_rounded, color: _kTeal, size: 26)
                       : const Icon(Icons.radio_button_unchecked_rounded, color: Colors.white24, size: 26),
