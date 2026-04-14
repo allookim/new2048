@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 
 // ── Warm fixed palette (메뉴와 동일 계열) ────────────────────
-const _kBg     = Color(0xFFD9A84D); // 메뉴 배경과 동일
-const _kCard   = Color(0xFFC08030); // 카드 (약간 어두운 브라운)
-const _kAccent = Color(0xFF7A4A00); // 아이콘 강조 (진한 브라운)
+const _kBg     = Color(0xFFD9A84D);
+const _kCard   = Color(0xFFC08030);
+const _kAccent = Color(0xFF7A4A00);
 const _kText   = Colors.white;
-const _kDim    = Color(0xB3FFFFFF); // 보조 텍스트
-const _kLabel  = Color(0x80FFFFFF); // 섹션 레이블
+const _kDim    = Color(0xB3FFFFFF);
+const _kLabel  = Color(0x80FFFFFF);
+
+// 카드 라운드: 풀라운드 기준 50%
+const _kRadiusFull = 999.0; // version (pill)
+const _kRadius     = 24.0;  // 일반 카드
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -145,18 +149,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
               // ── Section: Game ─────────────────────────────
               _SectionLabel('GAME SETTINGS'),
               const SizedBox(height: 8),
-              _ToggleTile(
-                icon: Icons.vibration_rounded,
-                label: 'Vibration',
-                value: _vibration,
-                onChanged: (v) => setState(() => _vibration = v),
-              ),
-              const SizedBox(height: 8),
-              _ToggleTile(
-                icon: Icons.music_note_rounded,
-                label: 'Sound Effects',
-                value: _sound,
-                onChanged: (v) => setState(() => _sound = v),
+              Container(
+                decoration: BoxDecoration(
+                  color: _kCard,
+                  borderRadius: BorderRadius.circular(_kRadius),
+                ),
+                child: Column(
+                  children: [
+                    _ToggleTile(
+                      icon: Icons.vibration_rounded,
+                      label: 'Vibration',
+                      value: _vibration,
+                      onChanged: (v) => setState(() => _vibration = v),
+                    ),
+                    Divider(height: 1, color: Colors.white.withValues(alpha: 0.1), indent: 16, endIndent: 16),
+                    _ToggleTile(
+                      icon: Icons.music_note_rounded,
+                      label: 'Sound Effects',
+                      value: _sound,
+                      onChanged: (v) => setState(() => _sound = v),
+                    ),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 24),
@@ -200,7 +214,7 @@ class _AccountCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         color: _kCard,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(_kRadius),
       ),
       child: isAnonymous ? _buildAnonymous() : _buildLoggedIn(),
     );
@@ -301,12 +315,8 @@ class _ToggleTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: BoxDecoration(
-        color: _kCard,
-        borderRadius: BorderRadius.circular(16),
-      ),
       child: Row(
         children: [
           Icon(icon, color: _kAccent, size: 22),
@@ -335,6 +345,7 @@ class _ToggleTile extends StatelessWidget {
   }
 }
 
+
 class _InfoTile extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -352,7 +363,7 @@ class _InfoTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
         color: _kCard,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(_kRadiusFull),
       ),
       child: Row(
         children: [
