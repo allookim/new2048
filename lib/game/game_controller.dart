@@ -233,6 +233,14 @@ class GameController extends ChangeNotifier {
         _saveBestItemScore();
       }
 
+      // 폭탄 폭발 처리
+      for (final (r, c) in result.bombPositions) {
+        _explodeBomb(r, c);
+      }
+
+      // 얼음·잠금 타일 카운트다운
+      _decrementFrozenTiles();
+
     } else {
       _score += result.scoreGained;
 
