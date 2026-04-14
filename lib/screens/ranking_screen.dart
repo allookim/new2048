@@ -35,7 +35,7 @@ class _RankingScreenState extends State<RankingScreen> {
     setState(() => _myNickname = nickname);
     if (nickname == null || nickname == 'Player') {
       await Future.delayed(const Duration(milliseconds: 400));
-      if (mounted) _showNicknameDialog(isFirst: true);
+      if (mounted) await _showNicknameDialog(isFirst: true);
     }
   }
 
@@ -138,57 +138,61 @@ class _RankingScreenState extends State<RankingScreen> {
     final controller = TextEditingController(
       text: (_myNickname == null || _myNickname == 'Player') ? '' : _myNickname,
     );
-    await showDialog(
-      context: context,
-      barrierDismissible: !isFirst,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: _kCard,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          isFirst ? 'Set your nickname' : 'Change nickname',
-          style: const TextStyle(
-            fontFamily: 'Nunito', fontWeight: FontWeight.w900,
-            fontSize: 20, color: Colors.white,
-          ),
-        ),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 14,
-          style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w700, color: Colors.white, fontSize: 16),
-          decoration: InputDecoration(
-            hintText: 'Enter nickname',
-            hintStyle: const TextStyle(color: Colors.white38),
-            counterStyle: const TextStyle(color: Colors.white38),
-            filled: true,
-            fillColor: _kBg,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _kTeal, width: 1.5)),
-          ),
-        ),
-        actions: [
-          if (!isFirst)
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancel', style: TextStyle(fontFamily: 'Nunito', color: Colors.white54, fontWeight: FontWeight.w700)),
+    try {
+      await showDialog(
+        context: context,
+        barrierDismissible: !isFirst,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: _kCard,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            isFirst ? 'Set your nickname' : 'Change nickname',
+            style: const TextStyle(
+              fontFamily: 'Nunito', fontWeight: FontWeight.w900,
+              fontSize: 20, color: Colors.white,
             ),
-          TextButton(
-            onPressed: () async {
-              final name = controller.text.trim();
-              if (name.isEmpty) return;
-              await SupabaseService.instance.setNickname(name);
-              if (ctx.mounted) Navigator.of(ctx).pop();
-              if (mounted) {
-                setState(() => _myNickname = name);
-                _load();
-              }
-            },
-            child: const Text('Save', style: TextStyle(fontFamily: 'Nunito', color: _kTeal, fontWeight: FontWeight.w900, fontSize: 16)),
           ),
-        ],
-      ),
-    );
-    controller.dispose();
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            maxLength: 14,
+            style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w700, color: Colors.white, fontSize: 16),
+            decoration: InputDecoration(
+              hintText: 'Enter nickname',
+              hintStyle: const TextStyle(color: Colors.white38),
+              counterStyle: const TextStyle(color: Colors.white38),
+              filled: true,
+              fillColor: _kBg,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _kTeal, width: 1.5)),
+            ),
+          ),
+          actions: [
+            if (!isFirst)
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('Cancel', style: TextStyle(fontFamily: 'Nunito', color: Colors.white54, fontWeight: FontWeight.w700)),
+              ),
+            TextButton(
+              onPressed: () async {
+                final name = controller.text.trim();
+                if (name.isEmpty) return;
+                await SupabaseService.instance.setNickname(name);
+                if (ctx.mounted) Navigator.of(ctx).pop();
+                if (mounted) {
+                  setState(() => _myNickname = name);
+                  _load();
+                }
+              },
+              child: const Text('Save', style: TextStyle(fontFamily: 'Nunito', color: _kTeal, fontWeight: FontWeight.w900, fontSize: 16)),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      // Delay dispose until dialog closing animation completes (~300ms)
+      Future.delayed(const Duration(milliseconds: 400), controller.dispose);
+    }
   }
 
   @override
@@ -369,7 +373,7 @@ class _RankList extends StatelessWidget {
       onRefresh: () async => onRefresh(),
       color: _kTeal,
       child: ListView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         itemCount: entries.length + (myRank != null ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == 0 && myRank != null) return _MyRankBanner(rank: myRank!);

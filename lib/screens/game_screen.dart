@@ -1003,7 +1003,8 @@ class _PauseMenu extends StatelessWidget {
             ),
             // Buttons
             Expanded(
-              child: Center(
+              child: Align(
+                alignment: const Alignment(0, -0.3),
                 child: SizedBox(
                   width: 280,
                   child: Column(
@@ -1019,8 +1020,8 @@ class _PauseMenu extends StatelessWidget {
                       _PauseMenuItem(
                         label: 'Restart game',
                         onTap: onRestart,
-                        bgColor: Colors.white.withValues(alpha: 0.15),
-                        textColor: Colors.white,
+                        bgColor: Colors.white,
+                        textColor: const Color(0xFF1E1460),
                       ),
                       const SizedBox(height: 16),
                       _PauseMenuItem(
