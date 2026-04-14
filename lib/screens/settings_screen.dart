@@ -211,8 +211,7 @@ class _AccountCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: _kCard,
         borderRadius: BorderRadius.circular(_kRadius),
