@@ -87,30 +87,19 @@ class _RankingScreenState extends State<RankingScreen> {
                 children: [
                   const Icon(Icons.person_rounded, color: _kTeal, size: 20),
                   const SizedBox(width: 10),
-                  Text(
-                    SupabaseService.instance.isAnonymous
-                        ? 'Guest'
-                        : (_myNickname ?? 'Player'),
-                    style: const TextStyle(
-                      fontFamily: 'Nunito',
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                  if (!SupabaseService.instance.isAnonymous &&
-                      SupabaseService.instance.userEmail != null) ...[
+                  if (SupabaseService.instance.isAnonymous) ...[
+                    const Text('Guest', style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w700, fontSize: 15, color: Colors.white54)),
+                    if (_myNickname != null && _myNickname != 'Player') ...[
+                      const SizedBox(width: 8),
+                      Text(_myNickname!, style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white)),
+                    ],
+                  ] else ...[
+                    Text(_myNickname ?? 'Player', style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white)),
                     const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        SupabaseService.instance.userEmail!,
-                        style: const TextStyle(
-                          fontFamily: 'Nunito',
-                          fontSize: 12,
-                          color: Colors.white54,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      decoration: BoxDecoration(color: _kTeal.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(999)),
+                      child: const Text('Google', style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w800, fontSize: 11, color: _kTeal)),
                     ),
                   ],
                 ],
@@ -287,39 +276,35 @@ class _PillTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 44,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        children: List.generate(labels.length, (i) => Expanded(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(labels.length, (i) {
+        final isSelected = selectedIndex == i;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 6),
           child: GestureDetector(
             onTap: () => onTap(i),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeInOut,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
               decoration: BoxDecoration(
-                color: selectedIndex == i ? _kTeal : Colors.transparent,
+                color: isSelected ? _kTeal : Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(999),
               ),
-              child: Center(
-                child: Text(
-                  labels[i],
-                  style: TextStyle(
-                    fontFamily: 'Nunito',
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                    color: selectedIndex == i ? const Color(0xFF1E1460) : Colors.white70,
-                  ),
+              child: Text(
+                labels[i],
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 16,
+                  color: isSelected ? const Color(0xFF1E1460) : Colors.white70,
                 ),
               ),
             ),
           ),
-        )),
-      ),
+        );
+      }),
     );
   }
 }
