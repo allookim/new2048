@@ -10,6 +10,7 @@ class SupabaseService {
   String? get userId => _client.auth.currentUser?.id;
   bool get isLoggedIn => userId != null;
   bool get isAnonymous => _client.auth.currentUser?.isAnonymous ?? true;
+  String? get userEmail => _client.auth.currentUser?.email;
 
   /// 앱 시작 시 익명 로그인 (이미 세션 있으면 유지)
   Future<void> init() async {
