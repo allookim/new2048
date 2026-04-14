@@ -58,7 +58,7 @@ class ThemeScreen extends StatelessWidget {
             // ── Theme List ───────────────────────────────────
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                 itemCount: themes.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
@@ -113,15 +113,18 @@ class _ThemeCard extends StatelessWidget {
         child: Row(
           children: [
             // ── Thumbnail ─────────────────────────────────
-            ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(20)),
-              child: SizedBox(
-                width: 96,
-                height: 96,
-                child: theme.backgroundAsset != null
-                    ? Image.asset(theme.backgroundAsset!, fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _MiniGrid(theme: theme))
-                    : _MiniGrid(theme: theme),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 72,
+                  height: 76,
+                  child: theme.backgroundAsset != null
+                      ? Image.asset(theme.backgroundAsset!, fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _MiniGrid(theme: theme))
+                      : _MiniGrid(theme: theme),
+                ),
               ),
             ),
 
