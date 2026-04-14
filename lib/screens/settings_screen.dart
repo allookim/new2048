@@ -108,7 +108,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     behavior: HitTestBehavior.opaque,
                     child: const Padding(
                       padding: EdgeInsets.all(6),
-                      child: Icon(Icons.arrow_back_rounded, color: _kText, size: 24),
+                      child: Icon(Icons.arrow_back_rounded, color: _kText, size: 30),
                     ),
                   ),
                   const Expanded(
@@ -132,7 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 28),
 
               // ── Section: Account ──────────────────────────
-              _SectionLabel('ACCOUNT'),
+              _SectionLabel('Account'),
               const SizedBox(height: 8),
               _AccountCard(
                 isAnonymous: _isAnonymous,
@@ -147,7 +147,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
 
               // ── Section: Game ─────────────────────────────
-              _SectionLabel('GAME SETTINGS'),
+              _SectionLabel('Game Settings'),
               const SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
@@ -176,7 +176,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
 
               // ── Section: Info ─────────────────────────────
-              _SectionLabel('INFO'),
+              _SectionLabel('Info'),
               const SizedBox(height: 8),
               _InfoTile(
                 icon: Icons.info_outline_rounded,
@@ -240,7 +240,7 @@ class _AccountCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
               color: _kAccent,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(999),
             ),
             child: const Text(
               'Google',
@@ -291,10 +291,10 @@ class _SectionLabel extends StatelessWidget {
       text,
       style: const TextStyle(
         fontFamily: 'Nunito',
-        fontSize: 10,
+        fontSize: 14,
         fontWeight: FontWeight.w900,
         color: _kLabel,
-        letterSpacing: 3,
+        letterSpacing: 0,
       ),
     );
   }
@@ -340,6 +340,8 @@ class _ToggleTile extends StatelessWidget {
             activeTrackColor: _kAccent,
             inactiveThumbColor: _kDim,
             inactiveTrackColor: Colors.white12,
+            overlayColor: WidgetStateProperty.all(Colors.transparent),
+            trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
           ),
         ],
       ),
