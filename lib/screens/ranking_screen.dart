@@ -37,6 +37,11 @@ class _RankingScreenState extends State<RankingScreen>
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    await SupabaseService.instance.signInWithGoogle();
+    // 웹: OAuth 리디렉션으로 페이지가 새로고침됨 — 별도 처리 불필요
+  }
+
   Future<void> _showNicknameDialog({bool isFirst = false}) async {
     final controller = TextEditingController(
       text: (_myNickname == null || _myNickname == 'Player') ? '' : _myNickname,
@@ -163,6 +168,20 @@ class _RankingScreenState extends State<RankingScreen>
           ),
         ),
         actions: [
+          if (SupabaseService.instance.isAnonymous)
+            TextButton.icon(
+              onPressed: _signInWithGoogle,
+              icon: const Icon(Icons.login, color: Color(0xFF6DDDD0), size: 18),
+              label: const Text(
+                'Google',
+                style: TextStyle(
+                  fontFamily: 'Nunito',
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF6DDDD0),
+                  fontSize: 14,
+                ),
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.person, color: Colors.white70),
             tooltip: 'Change nickname',

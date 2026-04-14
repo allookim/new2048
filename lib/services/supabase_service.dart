@@ -9,19 +9,46 @@ class SupabaseService {
 
   String? get userId => _client.auth.currentUser?.id;
   bool get isLoggedIn => userId != null;
+  bool get isAnonymous => _client.auth.currentUser?.isAnonymous ?? true;
 
   /// 앱 시작 시 익명 로그인 (이미 세션 있으면 유지)
   Future<void> init() async {
     try {
-      if (_client.auth.currentUser != null) return;
+      if (_client.auth.currentUser != null) {
+        // Google 로그인 후 리디렉션 복귀 시 닉네임 자동 동기화
+        if (!isAnonymous) await _syncNicknameFromGoogle();
+        return;
+      }
       await _client.auth.signInAnonymously();
     } catch (e) {
-      // 로그인 실패해도 앱은 정상 실행
       debugPrint('Supabase init error: $e');
     }
   }
 
-  /// 닉네임 설정 (처음 한 번)
+  /// Google OAuth 로그인 (웹: 리디렉션 방식)
+  Future<void> signInWithGoogle() async {
+    try {
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'https://allookim.github.io/new2048',
+      );
+    } catch (e) {
+      debugPrint('Google sign in error: $e');
+    }
+  }
+
+  /// Google 프로필 이름으로 닉네임 자동 설정 (기본값 'Player'인 경우만)
+  Future<void> _syncNicknameFromGoogle() async {
+    final googleName =
+        _client.auth.currentUser?.userMetadata?['name'] as String?;
+    if (googleName == null) return;
+    final existing = await getNickname();
+    if (existing == null || existing == 'Player') {
+      await setNickname(googleName);
+    }
+  }
+
+  /// 닉네임 설정
   Future<void> setNickname(String nickname) async {
     if (userId == null) return;
     await _client.from('profiles').upsert({
@@ -48,7 +75,6 @@ class SupabaseService {
   }) async {
     if (userId == null) return;
     final col = gameMode == 'item' ? 'best_item_score' : 'best_score';
-    // 현재 저장된 값보다 높을 때만 업데이트
     final existing = await _client
         .from('profiles')
         .select(col)
