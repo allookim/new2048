@@ -443,13 +443,9 @@ class GameController extends ChangeNotifier {
     if (_gameMode != GameMode.item) return TileType.normal;
 
     final roll = _random.nextDouble();
-    if (roll < 0.06) return TileType.golden; // 6%
-    if (roll < 0.10) return TileType.bomb;   // 4%
-    if (roll < 0.13) return TileType.ice;    // 3%
-    if (roll < 0.16) return TileType.wild;   // 3%
-    if (roll < 0.19) return TileType.lock;   // 3%
-    if (roll < 0.22) return _randomArrow();  // 3%
-    return TileType.normal;                   // 78%
+    if (roll < 0.03) return TileType.lock;    // 3%
+    if (roll < 0.06) return _randomArrow();   // 3%
+    return TileType.normal;                   // 94%
   }
 
   @override
