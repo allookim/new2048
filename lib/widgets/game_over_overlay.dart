@@ -161,17 +161,19 @@ class _GameOverContent extends StatelessWidget {
               ),
             ),
 
-          const SizedBox(height: 6),
-          Text(
-            'MAX COMBO  ${gc.maxCombo}×',
-            style: const TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: Color(0x55FFFFFF),
-              letterSpacing: 1,
+          if (isItem) ...[
+            const SizedBox(height: 6),
+            Text(
+              'MAX COMBO  ${gc.maxCombo}×',
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Color(0x55FFFFFF),
+                letterSpacing: 1,
+              ),
             ),
-          ),
+          ],
 
           const SizedBox(height: 36),
 
