@@ -26,12 +26,15 @@ class SupabaseService {
     }
   }
 
-  /// Google OAuth 로그인 (웹: 리디렉션 방식)
+  /// Google OAuth 로그인 (웹: 리디렉션 / iOS: 딥링크)
   Future<void> signInWithGoogle() async {
     try {
+      final redirectTo = kIsWeb
+          ? 'https://allookim.github.io/new2048'
+          : 'io.supabase.hifomhsghpjceidveplk://login-callback/';
       await _client.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: 'https://allookim.github.io/new2048',
+        redirectTo: redirectTo,
       );
     } catch (e) {
       debugPrint('Google sign in error: $e');
