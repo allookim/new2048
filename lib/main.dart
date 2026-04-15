@@ -5,6 +5,9 @@ import 'core/theme/theme_controller.dart';
 import 'game/game_controller.dart';
 import 'screens/splash_screen.dart';
 import 'services/supabase_service.dart';
+import 'services/game_center_service.dart';
+import 'services/audio_service.dart';
+import 'services/settings_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +20,10 @@ void main() async {
   } catch (e) {
     debugPrint('Supabase setup error: $e');
   }
+  await SettingsService.instance.load();
+  GameCenterService.instance.signIn();
+  await AudioService.instance.init();
+  AudioService.instance.startBgm();
   runApp(const App());
 }
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
+import '../services/settings_service.dart';
+import '../services/audio_service.dart';
 
 // ── Warm fixed palette (메뉴와 동일 계열) ────────────────────
 const _kBg     = Color(0xFFD9A84D);
@@ -21,8 +23,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _vibration = false;
-  bool _sound = false;
   String? _nickname;
   bool _isAnonymous = true;
   String? _email;
@@ -31,6 +31,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _loadAccountInfo();
+    SettingsService.instance.addListener(_onSettingsChanged);
+  }
+
+  @override
+  void dispose() {
+    SettingsService.instance.removeListener(_onSettingsChanged);
+    super.dispose();
+  }
+
+  void _onSettingsChanged() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _loadAccountInfo() async {
@@ -142,6 +153,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   await SupabaseService.instance.signInWithGoogle();
                 },
                 onChangeNickname: _changeNickname,
+                onLogout: () async {
+                  await SupabaseService.instance.signOut();
+                  if (mounted) _loadAccountInfo();
+                },
               ),
 
               const SizedBox(height: 24),
@@ -159,15 +174,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _ToggleTile(
                       icon: Icons.vibration_rounded,
                       label: 'Vibration',
-                      value: _vibration,
-                      onChanged: (v) => setState(() => _vibration = v),
+                      value: SettingsService.instance.vibration,
+                      onChanged: (v) => SettingsService.instance.setVibration(v),
                     ),
                     Divider(height: 1, color: Colors.white.withValues(alpha: 0.1), indent: 16, endIndent: 16),
                     _ToggleTile(
                       icon: Icons.music_note_rounded,
                       label: 'Sound Effects',
-                      value: _sound,
-                      onChanged: (v) => setState(() => _sound = v),
+                      value: SettingsService.instance.sfx,
+                      onChanged: (v) => SettingsService.instance.setSfx(v),
+                    ),
+                    Divider(height: 1, color: Colors.white.withValues(alpha: 0.1), indent: 16, endIndent: 16),
+                    _ToggleTile(
+                      icon: Icons.library_music_rounded,
+                      label: 'BGM',
+                      value: SettingsService.instance.bgm,
+                      onChanged: (v) async {
+                        await SettingsService.instance.setBgm(v);
+                        if (v) {
+                          AudioService.instance.startBgm();
+                        } else {
+                          AudioService.instance.stopBgm();
+                        }
+                      },
                     ),
                   ],
                 ),
@@ -199,6 +228,7 @@ class _AccountCard extends StatelessWidget {
   final String? email;
   final VoidCallback onLoginWithGoogle;
   final VoidCallback onChangeNickname;
+  final VoidCallback onLogout;
 
   const _AccountCard({
     required this.isAnonymous,
@@ -206,6 +236,7 @@ class _AccountCard extends StatelessWidget {
     required this.email,
     required this.onLoginWithGoogle,
     required this.onChangeNickname,
+    required this.onLogout,
   });
 
   @override
@@ -253,26 +284,47 @@ class _AccountCard extends StatelessWidget {
   }
 
   Widget _buildLoggedIn() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Icon(Icons.person_rounded, color: _kAccent, size: 22),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                nickname ?? 'Player',
-                style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w700, fontSize: 16, color: _kText),
+        Row(
+          children: [
+            const Icon(Icons.person_rounded, color: _kAccent, size: 22),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    nickname ?? 'Player',
+                    style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w700, fontSize: 16, color: _kText),
+                  ),
+                  if (email != null)
+                    Text(email!, style: const TextStyle(fontFamily: 'Nunito', fontSize: 12, color: _kDim)),
+                ],
               ),
-              if (email != null)
-                Text(email!, style: const TextStyle(fontFamily: 'Nunito', fontSize: 12, color: _kDim)),
-            ],
-          ),
+            ),
+            GestureDetector(
+              onTap: onChangeNickname,
+              child: const Icon(Icons.edit_rounded, color: _kDim, size: 20),
+            ),
+          ],
         ),
+        const SizedBox(height: 12),
         GestureDetector(
-          onTap: onChangeNickname,
-          child: const Icon(Icons.edit_rounded, color: _kDim, size: 20),
+          onTap: onLogout,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: const Text(
+              'Log out',
+              style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w900, fontSize: 13, color: _kDim),
+            ),
+          ),
         ),
       ],
     );

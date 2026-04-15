@@ -1,11 +1,15 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/tile.dart';
 import '../models/tile.dart' show TileType;
 import '../services/supabase_service.dart';
+import '../services/game_center_service.dart';
+import '../services/audio_service.dart';
+import '../services/settings_service.dart';
 import '../models/game_state.dart';
 import '../models/game_mode.dart';
 import '../skills/skill.dart';
@@ -79,6 +83,7 @@ class GameController extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_bestScoreKey, _bestScore);
     SupabaseService.instance.submitScore(score: _bestScore, gameMode: 'normal');
+    GameCenterService.instance.submitNormalScore(_bestScore);
   }
 
   Future<void> _saveBestItemScore() async {
@@ -204,6 +209,18 @@ class GameController extends ChangeNotifier {
       _lastMoveTime = now;
       _comboMultiplier = _comboToMultiplier(_combo);
 
+      if (result.mergeCount > 0) {
+        if (_combo >= 2) {
+          if (SettingsService.instance.vibration) HapticFeedback.mediumImpact();
+          AudioService.instance.playCombo();
+        } else {
+          if (SettingsService.instance.vibration) HapticFeedback.lightImpact();
+          AudioService.instance.playMove();
+        }
+      } else {
+        AudioService.instance.playMove();
+      }
+
       // 점수에 콤보 배수 적용
       final multipliedScore = (result.scoreGained * _comboMultiplier).round();
       _score += multipliedScore;
@@ -223,7 +240,10 @@ class GameController extends ChangeNotifier {
         }
       }
       if (maxMergedValue >= 512) timeBonus += 2.0;
-      if (maxMergedValue >= 2048) timeBonus += 10.0;
+      if (maxMergedValue >= 2048) {
+        timeBonus += 10.0;
+        if (SettingsService.instance.vibration) HapticFeedback.heavyImpact();
+      }
 
       _remainingSeconds = (_remainingSeconds + timeBonus).clamp(0, 999);
 
@@ -244,6 +264,11 @@ class GameController extends ChangeNotifier {
     } else {
       _score += result.scoreGained;
 
+      if (result.mergeCount > 0) {
+        if (SettingsService.instance.vibration) HapticFeedback.lightImpact();
+      }
+      AudioService.instance.playMove();
+
       if (_score > _bestScore) {
         _bestScore = _score;
         _saveBestScore();
@@ -258,6 +283,7 @@ class GameController extends ChangeNotifier {
       _decrementFrozenTiles();
 
       if (!_hasSeenWin && hasWon(_board)) {
+        if (SettingsService.instance.vibration) HapticFeedback.heavyImpact();
         _status = GameStatus.won;
         _spawnTile();
         notifyListeners();

@@ -41,6 +41,16 @@ class SupabaseService {
     }
   }
 
+  /// 로그아웃 후 익명 세션으로 복귀
+  Future<void> signOut() async {
+    try {
+      await _client.auth.signOut();
+      await _client.auth.signInAnonymously();
+    } catch (e) {
+      debugPrint('Sign out error: $e');
+    }
+  }
+
   /// Google 프로필 이름으로 닉네임 자동 설정 (기본값 'Player'인 경우만)
   Future<void> _syncNicknameFromGoogle() async {
     final googleName =

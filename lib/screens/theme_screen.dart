@@ -184,30 +184,28 @@ class _MiniGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: theme.backgroundColor,
-      padding: const EdgeInsets.all(12),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _MiniTile(color: theme.tileColor(2)),
-                const SizedBox(width: 4),
-                _MiniTile(color: theme.tileColor(8)),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _MiniTile(color: theme.tileColor(32)),
-                const SizedBox(width: 4),
-                _MiniTile(color: theme.tileColor(128)),
-              ],
-            ),
-          ],
-        ),
+      alignment: Alignment.center,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _MiniTile(color: theme.tileColor(2)),
+              const SizedBox(width: 4),
+              _MiniTile(color: theme.tileColor(8)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _MiniTile(color: theme.tileColor(32)),
+              const SizedBox(width: 4),
+              _MiniTile(color: theme.tileColor(128)),
+            ],
+          ),
+        ],
       ),
     );
   }

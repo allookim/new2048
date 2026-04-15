@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
+import '../services/game_center_service.dart';
 
 const _kBg    = Color(0xFF0a1e4a);
 const _kCard  = Color(0xFF1a2d6e);
@@ -207,20 +208,11 @@ class _RankingScreenState extends State<RankingScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: SizedBox(
                 height: 56,
-                child: Row(
+                child: Stack(
                   children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      behavior: HitTestBehavior.opaque,
-                      child: const Padding(
-                        padding: EdgeInsets.all(6),
-                        child: Icon(Icons.arrow_back_rounded, color: Colors.white, size: 30),
-                      ),
-                    ),
-                    const Expanded(
+                    const Center(
                       child: Text(
                         'Ranking',
-                        textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'Nunito',
                           fontSize: 32,
@@ -231,9 +223,40 @@ class _RankingScreenState extends State<RankingScreen> {
                         ),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.person_rounded, color: Colors.white70, size: 26),
-                      onPressed: _showAccountSheet,
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: GestureDetector(
+                        onTap: () => Navigator.pop(context),
+                        behavior: HitTestBehavior.opaque,
+                        child: const Padding(
+                          padding: EdgeInsets.all(6),
+                          child: Icon(Icons.arrow_back_rounded, color: Colors.white, size: 30),
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.emoji_events_rounded, color: Colors.white70, size: 26),
+                            tooltip: 'Game Center',
+                            onPressed: () async {
+                              final err = await GameCenterService.instance.showLeaderboard();
+                              if (err != null && mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Game Center: $err')),
+                                );
+                              }
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.person_rounded, color: Colors.white70, size: 26),
+                            onPressed: _showAccountSheet,
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -251,6 +274,8 @@ class _RankingScreenState extends State<RankingScreen> {
                 onTap: (i) => setState(() => _tabIndex = i),
               ),
             ),
+
+            const SizedBox(height: 8),
 
             // ── Body ─────────────────────────────────────────
             Expanded(

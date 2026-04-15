@@ -15,7 +15,6 @@ class ScorePanel extends StatelessWidget {
       builder: (context, controller, _) {
         final isSpeed = controller.gameMode == GameMode.item;
         final bestValue = isSpeed ? controller.bestItemScore : controller.bestScore;
-        final bestLabel = isSpeed ? 'BEST⚡' : 'BEST';
 
         return Column(
           children: [
@@ -24,7 +23,7 @@ class ScorePanel extends StatelessWidget {
               children: [
                 Expanded(child: _ScoreBox(label: 'SCORE', value: controller.score)),
                 const SizedBox(width: 8),
-                Expanded(child: _ScoreBox(label: bestLabel, value: bestValue)),
+                Expanded(child: _ScoreBox(label: 'BEST', iconSuffix: isSpeed ? '⚡' : null, value: bestValue)),
               ],
             ),
             const SizedBox(height: 6),
@@ -96,8 +95,9 @@ class _SmallButton extends StatelessWidget {
 class _ScoreBox extends StatefulWidget {
   final String label;
   final int value;
+  final String? iconSuffix;
 
-  const _ScoreBox({required this.label, required this.value});
+  const _ScoreBox({required this.label, required this.value, this.iconSuffix});
 
   @override
   State<_ScoreBox> createState() => _ScoreBoxState();
@@ -116,12 +116,21 @@ class _ScoreBoxState extends State<_ScoreBox> {
       ),
       child: Column(
         children: [
-          Text(
-            widget.label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+          RichText(
+            text: TextSpan(
+              style: const TextStyle(
+                fontSize: 11,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+              children: [
+                TextSpan(text: widget.label),
+                if (widget.iconSuffix != null)
+                  TextSpan(
+                    text: ' ${widget.iconSuffix}',
+                    style: const TextStyle(fontSize: 15),
+                  ),
+              ],
             ),
           ),
           AnimatedSwitcher(

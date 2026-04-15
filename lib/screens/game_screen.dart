@@ -405,13 +405,12 @@ class _ScoreRow extends StatelessWidget {
     return Consumer<GameController>(
       builder: (_, gc, __) {
         final isItem = gc.gameMode == GameMode.item;
-        final bestLabel = isItem ? 'BEST ⚡' : 'BEST';
         final bestValue = isItem ? gc.bestItemScore : gc.bestScore;
         return Row(
           children: [
             Expanded(child: _ScoreBox(label: 'SCORE', value: gc.score)),
             const SizedBox(width: 12),
-            Expanded(child: _ScoreBox(label: bestLabel, value: bestValue)),
+            Expanded(child: _ScoreBox(label: 'BEST', iconSuffix: isItem ? '⚡' : null, value: bestValue)),
           ],
         );
       },
@@ -422,10 +421,12 @@ class _ScoreRow extends StatelessWidget {
 class _ScoreBox extends StatelessWidget {
   final String label;
   final int value;
-  const _ScoreBox({required this.label, required this.value});
+  final String? iconSuffix;
+  const _ScoreBox({required this.label, required this.value, this.iconSuffix});
 
   @override
   Widget build(BuildContext context) {
+    final isBasic = context.watch<ThemeController>().theme.id == 'basic';
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
       decoration: BoxDecoration(
@@ -434,14 +435,23 @@ class _ScoreBox extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              color: Color(0x8CFFFFFF),
-              letterSpacing: 2,
+          RichText(
+            text: TextSpan(
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: Color(0x8CFFFFFF),
+                letterSpacing: 2,
+              ),
+              children: [
+                TextSpan(text: label),
+                if (iconSuffix != null)
+                  TextSpan(
+                    text: ' $iconSuffix',
+                    style: const TextStyle(fontSize: 14, letterSpacing: 0),
+                  ),
+              ],
             ),
           ),
           AnimatedSwitcher(
@@ -453,15 +463,32 @@ class _ScoreBox extends StatelessWidget {
               ).animate(anim),
               child: FadeTransition(opacity: anim, child: child),
             ),
-            child: Text(
-              '$value',
+            child: Stack(
               key: ValueKey(value),
-              style: const TextStyle(
-                fontFamily: 'Nunito',
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
+              children: [
+                if (isBasic)
+                  Text(
+                    '$value',
+                    style: TextStyle(
+                      fontFamily: 'Nunito',
+                      fontSize: 34,
+                      fontWeight: FontWeight.w900,
+                      foreground: Paint()
+                        ..style = PaintingStyle.stroke
+                        ..strokeWidth = 3
+                        ..color = const Color(0xFF000000),
+                    ),
+                  ),
+                Text(
+                  '$value',
+                  style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 34,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -986,57 +1013,47 @@ class _PauseMenu extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
-      child: SafeArea(
-        child: Column(
-          children: [
-            // Close button
-            Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 16, right: 16),
-                child: IconButton(
-                  icon: const Icon(Icons.close,
-                      color: Color(0x99FFFFFF), size: 30),
-                  onPressed: onResume,
-                ),
-              ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            right: 16,
+            child: IconButton(
+              icon: const Icon(Icons.close, color: Color(0x99FFFFFF), size: 30),
+              onPressed: onResume,
             ),
-            // Buttons
-            Expanded(
-              child: Align(
-                alignment: const Alignment(0, -0.3),
-                child: SizedBox(
-                  width: 280,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _PauseMenuItem(
-                        label: 'Play game',
-                        onTap: onResume,
-                        bgColor: const Color(0xFF6DDDD0),
-                        textColor: const Color(0xFF1E1460),
-                      ),
-                      const SizedBox(height: 16),
-                      _PauseMenuItem(
-                        label: 'Restart game',
-                        onTap: onRestart,
-                        bgColor: Colors.white,
-                        textColor: const Color(0xFF1E1460),
-                      ),
-                      const SizedBox(height: 16),
-                      _PauseMenuItem(
-                        label: 'End game',
-                        onTap: onEndGame,
-                        bgColor: Colors.white.withValues(alpha: 0.08),
-                        textColor: Colors.white70,
-                      ),
-                    ],
+          ),
+          Center(
+            child: SizedBox(
+              width: 280,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _PauseMenuItem(
+                    label: 'Play game',
+                    onTap: onResume,
+                    bgColor: const Color(0xFF6DDDD0),
+                    textColor: const Color(0xFF1E1460),
                   ),
-                ),
+                  const SizedBox(height: 16),
+                  _PauseMenuItem(
+                    label: 'Restart game',
+                    onTap: onRestart,
+                    bgColor: Colors.white,
+                    textColor: const Color(0xFF1E1460),
+                  ),
+                  const SizedBox(height: 16),
+                  _PauseMenuItem(
+                    label: 'End game',
+                    onTap: onEndGame,
+                    bgColor: Colors.white.withValues(alpha: 0.08),
+                    textColor: Colors.white70,
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
