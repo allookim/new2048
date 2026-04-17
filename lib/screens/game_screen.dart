@@ -211,8 +211,8 @@ class _GameScreenState extends State<GameScreen>
         children: [
           // ── Background ────────────────────────────────────
           Positioned.fill(
-            child: Consumer2<GameController, ThemeController>(
-              builder: (_, gc, tc, __) {
+            child: Consumer<ThemeController>(
+              builder: (_, tc, __) {
                 if (_useNewLayout && tc.theme.backgroundVideoAsset != null) {
                   return _VideoBackground(asset: tc.theme.backgroundVideoAsset!);
                 }
@@ -224,10 +224,14 @@ class _GameScreenState extends State<GameScreen>
                         Container(color: tc.theme.backgroundColor),
                   );
                 }
-                final bg = gc.gameMode == GameMode.normalTest
-                    ? 'assets/images/bg_normal_test.png'
-                    : 'assets/images/bg_normal.png';
-                return Image.asset(bg, fit: BoxFit.cover);
+                return Consumer<GameController>(
+                  builder: (_, gc, __) {
+                    final bg = gc.gameMode == GameMode.normalTest
+                        ? 'assets/images/bg_normal_test.png'
+                        : 'assets/images/bg_normal.png';
+                    return Image.asset(bg, fit: BoxFit.cover);
+                  },
+                );
               },
             ),
           ),
@@ -966,6 +970,12 @@ class _VideoBackgroundState extends State<_VideoBackground> {
   late VideoPlayerController _controller;
   bool _initialized = false;
 
+  void _onVideoStateChanged() {
+    if (_initialized && !_controller.value.isPlaying && !_controller.value.isBuffering) {
+      _controller.play();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -976,7 +986,10 @@ class _VideoBackgroundState extends State<_VideoBackground> {
         if (mounted) {
           setState(() => _initialized = true);
           _controller.play();
+          _controller.addListener(_onVideoStateChanged);
         }
+      }).catchError((e) {
+        debugPrint('VideoPlayer init error: $e');
       });
   }
 

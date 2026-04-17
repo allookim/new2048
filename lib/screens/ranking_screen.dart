@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 import '../services/game_center_service.dart';
+import '../utils/nickname_filter.dart';
 
 const _kBg    = Color(0xFF0a1e4a);
 const _kCard  = Color(0xFF1a2d6e);
@@ -42,20 +43,25 @@ class _RankingScreenState extends State<RankingScreen> {
 
   Future<void> _load() async {
     setState(() => _loading = true);
-    final results = await Future.wait([
-      SupabaseService.instance.fetchRanking(gameMode: 'normal'),
-      SupabaseService.instance.fetchRanking(gameMode: 'item'),
-      SupabaseService.instance.fetchMyRank(gameMode: 'normal'),
-      SupabaseService.instance.fetchMyRank(gameMode: 'item'),
-    ]);
-    if (!mounted) return;
-    setState(() {
-      _normalRanks = results[0] as List<RankEntry>;
-      _itemRanks   = results[1] as List<RankEntry>;
-      _normalMyRank = results[2] as int?;
-      _itemMyRank   = results[3] as int?;
-      _loading = false;
-    });
+    try {
+      final results = await Future.wait([
+        SupabaseService.instance.fetchRanking(gameMode: 'normal'),
+        SupabaseService.instance.fetchRanking(gameMode: 'item'),
+        SupabaseService.instance.fetchMyRank(gameMode: 'normal'),
+        SupabaseService.instance.fetchMyRank(gameMode: 'item'),
+      ]).timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      setState(() {
+        _normalRanks = results[0] as List<RankEntry>;
+        _itemRanks   = results[1] as List<RankEntry>;
+        _normalMyRank = results[2] as int?;
+        _itemMyRank   = results[3] as int?;
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
   }
 
   void _showAccountSheet() {
@@ -177,7 +183,15 @@ class _RankingScreenState extends State<RankingScreen> {
             TextButton(
               onPressed: () async {
                 final name = controller.text.trim();
-                if (name.isEmpty) return;
+                final error = NicknameFilter.validate(name);
+                if (error != null) {
+                  if (ctx.mounted) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(content: Text(error), backgroundColor: Colors.redAccent),
+                    );
+                  }
+                  return;
+                }
                 await SupabaseService.instance.setNickname(name);
                 if (ctx.mounted) Navigator.of(ctx).pop();
                 if (mounted) {
