@@ -1,3 +1,4 @@
+import 'dart:math' show min;
 import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -156,12 +157,17 @@ class _GameScreenState extends State<GameScreen>
       child: LayoutBuilder(
         builder: (context, constraints) {
           final boardTop = constraints.maxHeight * 0.30;
+          // 넓은 화면(갤럭시 폴드 등)에서 보드가 아래로 넘치지 않도록 제한
+          // 일반 16:9 폰에서는 maxWidth < availableHeight이므로 동일하게 동작
+          final availableHeight = constraints.maxHeight - boardTop - 80;
+          final boardSize = min(constraints.maxWidth, availableHeight);
+          final boardLeft = (constraints.maxWidth - boardSize) / 2;
           return Stack(
             children: [
               // Board — starts at 30% of screen height
               Positioned(
-                top: boardTop, left: 0, right: 0,
-                child: const GameBoard(),
+                top: boardTop, left: boardLeft,
+                child: SizedBox(width: boardSize, child: const GameBoard()),
               ),
               // Header & score — top (board 위 레이어)
               Positioned(
@@ -979,7 +985,10 @@ class _VideoBackgroundState extends State<_VideoBackground> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.asset(widget.asset)
+    _controller = VideoPlayerController.asset(
+        widget.asset,
+        videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+      )
       ..setLooping(true)
       ..setVolume(0)
       ..initialize().then((_) {

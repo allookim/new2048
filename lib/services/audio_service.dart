@@ -12,12 +12,24 @@ class AudioService {
 
   bool _bgmStarted = false;
 
+  static final _sfxContext = AudioContext(
+    android: AudioContextAndroid(
+      audioFocus: AndroidAudioFocus.none,
+      isSpeakerphoneOn: false,
+      stayAwake: false,
+      contentType: AndroidContentType.sonification,
+      usageType: AndroidUsageType.game,
+    ),
+  );
+
   Future<void> init() async {
     try {
       await _bgm.setReleaseMode(ReleaseMode.loop);
       await _bgm.setVolume(0.4);
+      await _sfxMove.setAudioContext(_sfxContext);
       await _sfxMove.setReleaseMode(ReleaseMode.stop);
       await _sfxMove.setVolume(0.8);
+      await _sfxCombo.setAudioContext(_sfxContext);
       await _sfxCombo.setReleaseMode(ReleaseMode.stop);
       await _sfxCombo.setVolume(0.9);
       await _sfxMove.setSource(AssetSource('sounds/EFX_holder-2.mp3'));

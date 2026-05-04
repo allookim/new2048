@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
 import '../services/game_center_service.dart';
@@ -28,17 +29,110 @@ class _RankingScreenState extends State<RankingScreen> {
   void initState() {
     super.initState();
     _load();
-    _checkNickname();
+    _checkAuth();
   }
 
-  Future<void> _checkNickname() async {
+  Future<void> _checkAuth() async {
+    await Future.delayed(const Duration(milliseconds: 400));
+    if (!mounted) return;
+
+    // 로그인 안 된 경우 → 로그인 선택 팝업
+    if (!SupabaseService.instance.isLoggedIn) {
+      await _showLoginDialog();
+      if (!mounted) return;
+      _load(); // 로그인 후 랭킹 갱신
+      return;
+    }
+
+    // 이미 로그인된 경우 → 닉네임 체크
     final nickname = await SupabaseService.instance.getNickname();
     if (!mounted) return;
     setState(() => _myNickname = nickname);
     if (nickname == null || nickname == 'Player') {
-      await Future.delayed(const Duration(milliseconds: 400));
       if (mounted) await _showNicknameDialog(isFirst: true);
     }
+  }
+
+  Future<void> _showLoginDialog() async {
+    final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _kCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Sign in to use Ranking',
+          style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w900, fontSize: 20, color: Colors.white),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Sign in with Google to save your scores.\nGuest data may be lost on reinstall.',
+              style: TextStyle(fontFamily: 'Nunito', fontSize: 14, color: Colors.white60, height: 1.5),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: const Color(0xFF1E1460),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                SupabaseService.instance.signInWithGoogle();
+              },
+              child: const Text('Continue with Google', style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w800, fontSize: 16)),
+            ),
+            if (isIOS) ...[
+              const SizedBox(height: 8),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  SupabaseService.instance.signInWithApple();
+                },
+                child: const Text(' Continue with Apple', style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w800, fontSize: 16)),
+              ),
+            ],
+            const SizedBox(height: 8),
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: _kTeal,
+                side: const BorderSide(color: _kTeal),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                await SupabaseService.instance.signInAsGuest();
+                if (mounted) {
+                  final nickname = await SupabaseService.instance.getNickname();
+                  setState(() => _myNickname = nickname);
+                  if (nickname == null || nickname == 'Player') {
+                    if (mounted) await _showNicknameDialog(isFirst: true);
+                  }
+                }
+              },
+              child: const Text('Play as Guest', style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w800, fontSize: 16)),
+            ),
+            const SizedBox(height: 4),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Later', style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w700, fontSize: 14, color: Colors.white38)),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _load() async {
@@ -123,17 +217,28 @@ class _RankingScreenState extends State<RankingScreen> {
                   _showNicknameDialog();
                 },
               ),
-              // Google 로그인 (익명일 때만)
-              if (SupabaseService.instance.isAnonymous)
+              // Google 연동 (익명일 때만)
+              if (SupabaseService.instance.isAnonymous) ...[
                 _SheetOption(
                   icon: Icons.login_rounded,
-                  label: 'Sign in with Google',
+                  label: 'Link with Google',
                   color: _kTeal,
                   onTap: () {
                     Navigator.pop(ctx);
                     SupabaseService.instance.signInWithGoogle();
                   },
                 ),
+                if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS)
+                  _SheetOption(
+                    icon: Icons.phone_iphone_rounded,
+                    label: ' Link with Apple',
+                    color: Colors.white,
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      SupabaseService.instance.signInWithApple();
+                    },
+                  ),
+              ],
             ],
           ),
         ),
@@ -148,7 +253,7 @@ class _RankingScreenState extends State<RankingScreen> {
     try {
       await showDialog(
         context: context,
-        barrierDismissible: !isFirst,
+        barrierDismissible: true,
         builder: (ctx) => AlertDialog(
           backgroundColor: _kCard,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -175,11 +280,17 @@ class _RankingScreenState extends State<RankingScreen> {
             ),
           ),
           actions: [
-            if (!isFirst)
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: const Text('Cancel', style: TextStyle(fontFamily: 'Nunito', color: Colors.white54, fontWeight: FontWeight.w700)),
-              ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(ctx).pop();
+                if (isFirst) {
+                  // 닉네임 설정 취소 → 세션 제거 → 다음 방문 시 로그인 선택 팝업 재표시
+                  await SupabaseService.instance.signOutOnly();
+                  if (mounted) setState(() => _myNickname = null);
+                }
+              },
+              child: const Text('Cancel', style: TextStyle(fontFamily: 'Nunito', color: Colors.white54, fontWeight: FontWeight.w700)),
+            ),
             TextButton(
               onPressed: () async {
                 final name = controller.text.trim();
@@ -253,18 +364,19 @@ class _RankingScreenState extends State<RankingScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          IconButton(
-                            icon: const Icon(Icons.emoji_events_rounded, color: Colors.white70, size: 26),
-                            tooltip: 'Game Center',
-                            onPressed: () async {
-                              final err = await GameCenterService.instance.showLeaderboard();
-                              if (err != null && mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Game Center: $err')),
-                                );
-                              }
-                            },
-                          ),
+                          if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS)
+                            IconButton(
+                              icon: const Icon(Icons.emoji_events_rounded, color: Colors.white70, size: 26),
+                              tooltip: 'Game Center',
+                              onPressed: () async {
+                                final err = await GameCenterService.instance.showLeaderboard();
+                                if (err != null && mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Game Center: $err')),
+                                  );
+                                }
+                              },
+                            ),
                           IconButton(
                             icon: const Icon(Icons.person_rounded, color: Colors.white70, size: 26),
                             onPressed: _showAccountSheet,
@@ -360,13 +472,13 @@ class _PillTab extends StatelessWidget {
 // ── Account Sheet Option ───────────────────────────────────────
 
 class _SheetOption extends StatelessWidget {
-  final IconData icon;
+  final IconData? icon;
   final String label;
   final VoidCallback onTap;
   final Color color;
 
   const _SheetOption({
-    required this.icon,
+    this.icon,
     required this.label,
     required this.onTap,
     this.color = Colors.white,

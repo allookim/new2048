@@ -9,35 +9,61 @@ class SupabaseService {
 
   String? get userId => _client.auth.currentUser?.id;
   bool get isLoggedIn => userId != null;
-  bool get isAnonymous => _client.auth.currentUser?.isAnonymous ?? true;
+  // 실제 익명 로그인 상태 (로그인 안 된 경우는 false)
+  bool get isAnonymous => _client.auth.currentUser?.isAnonymous ?? false;
   String? get userEmail => _client.auth.currentUser?.email;
 
-  /// 앱 시작 시 익명 로그인 (이미 세션 있으면 유지)
+  /// 앱 시작 시 세션 복원 (자동 익명 로그인 제거 — LoginScreen이 담당)
   Future<void> init() async {
     try {
-      if (_client.auth.currentUser != null) {
-        // Google 로그인 후 리디렉션 복귀 시 닉네임 자동 동기화
-        if (!isAnonymous) await _syncNicknameFromGoogle();
-        return;
+      if (_client.auth.currentUser != null && !isAnonymous) {
+        await _syncNicknameFromGoogle();
       }
-      await _client.auth.signInAnonymously();
     } catch (e) {
       debugPrint('Supabase init error: $e');
     }
   }
 
-  /// Google OAuth 로그인 (웹: 리디렉션 / iOS: 딥링크)
+  /// Guest (익명) 로그인
+  Future<void> signInAsGuest() async {
+    try {
+      await _client.auth.signInAnonymously();
+    } catch (e) {
+      debugPrint('Anonymous sign in error: $e');
+    }
+  }
+
+  /// Google 로그인 or 연동
+  /// - 익명 유저: linkIdentity로 기존 데이터 유지, 중복 계정 없음
+  /// - 미로그인: signInWithOAuth로 신규 로그인
   Future<void> signInWithGoogle() async {
     try {
       final redirectTo = kIsWeb
           ? 'https://allookim.github.io/new2048'
           : 'io.supabase.hifomhsghpjceidveplk://login-callback/';
-      await _client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: redirectTo,
-      );
+      if (isLoggedIn && isAnonymous) {
+        await _client.auth.linkIdentity(OAuthProvider.google, redirectTo: redirectTo);
+      } else {
+        await _client.auth.signInWithOAuth(OAuthProvider.google, redirectTo: redirectTo);
+      }
     } catch (e) {
       debugPrint('Google sign in error: $e');
+    }
+  }
+
+  /// Apple 로그인 or 연동 (iOS only)
+  Future<void> signInWithApple() async {
+    try {
+      final redirectTo = kIsWeb
+          ? 'https://allookim.github.io/new2048'
+          : 'io.supabase.hifomhsghpjceidveplk://login-callback/';
+      if (isLoggedIn && isAnonymous) {
+        await _client.auth.linkIdentity(OAuthProvider.apple, redirectTo: redirectTo);
+      } else {
+        await _client.auth.signInWithOAuth(OAuthProvider.apple, redirectTo: redirectTo);
+      }
+    } catch (e) {
+      debugPrint('Apple sign in error: $e');
     }
   }
 
@@ -46,6 +72,15 @@ class SupabaseService {
     try {
       await _client.auth.signOut();
       await _client.auth.signInAnonymously();
+    } catch (e) {
+      debugPrint('Sign out error: $e');
+    }
+  }
+
+  /// 세션만 제거 (익명 재로그인 없음) — 닉네임 설정 취소 시 사용
+  Future<void> signOutOnly() async {
+    try {
+      await _client.auth.signOut();
     } catch (e) {
       debugPrint('Sign out error: $e');
     }
