@@ -60,6 +60,9 @@ class GameThemeData {
   /// 픽셀 아트 스타일 렌더링 사용 여부
   final bool isPixelStyle;
 
+  /// 테마 선택 화면 썸네일 이미지 경로
+  final String? thumbnailAsset;
+
   /// 배경 이미지 에셋 경로 (null이면 게임 모드 기본 배경 사용)
   final String? backgroundAsset;
 
@@ -102,6 +105,7 @@ class GameThemeData {
     this.isPremium = false,
     this.unlockCost,
     this.isPixelStyle = false,
+    this.thumbnailAsset,
     this.backgroundAsset,
     this.backgroundVideoAsset,
     this.isCircleTile = false,

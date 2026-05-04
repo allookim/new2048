@@ -60,6 +60,7 @@ final GameThemeData pixelTheme = const GameThemeData(
     moveDuration: Duration(milliseconds: 110),
   ),
 
+  thumbnailAsset: 'assets/images/theme-thum-pixel.png',
   isDefault: false,
   isPremium: false,
 );

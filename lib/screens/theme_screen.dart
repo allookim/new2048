@@ -122,8 +122,8 @@ class _ThemeCard extends StatelessWidget {
                 child: SizedBox(
                   width: 72,
                   height: 76,
-                  child: theme.backgroundAsset != null
-                      ? Image.asset(theme.backgroundAsset!, fit: BoxFit.cover,
+                  child: theme.thumbnailAsset != null
+                      ? Image.asset(theme.thumbnailAsset!, fit: BoxFit.cover,
                           errorBuilder: (_, __, ___) => _MiniGrid(theme: theme))
                       : _MiniGrid(theme: theme),
                 ),

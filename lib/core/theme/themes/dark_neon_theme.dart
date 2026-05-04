@@ -30,6 +30,7 @@ const darkNeonTheme = GameThemeData(
     2: Color(0xFF00D2D3),
     4: Color(0xFF00D2D3),
   },
+  thumbnailAsset: 'assets/images/theme-thum-neon.png',
   // Dark Neon: 더 빠르고 강렬한 merge 이펙트
   animationConfig: TileAnimationConfig(
     mergeDuration: Duration(milliseconds: 120),

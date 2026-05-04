@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../core/theme/theme_controller.dart';
 import '../core/theme/theme_registry.dart';
 import 'game_screen.dart';
 
@@ -85,10 +84,8 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.watch<ThemeController>().theme;
-
     return Scaffold(
-      backgroundColor: const Color(0xFFEFEFEF),
+      backgroundColor: const Color(0xFFF2EBD8),
       body: Center(
         child: FadeTransition(
           opacity: _fadeAnim,
@@ -98,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 // 타일 모양 로고
-                _TileLogo(theme: theme),
+                const _TileLogo(),
               ],
             ),
           ),
@@ -110,9 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
 
 /// 스플래쉬용 미니 2×2 타일 그리드 로고
 class _TileLogo extends StatelessWidget {
-  final dynamic theme;
-
-  const _TileLogo({required this.theme});
+  const _TileLogo();
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +132,7 @@ class _TileLogo extends StatelessWidget {
             height: size,
             decoration: BoxDecoration(
               color: c,
-              borderRadius: BorderRadius.circular(theme.tileRadius),
+              borderRadius: BorderRadius.circular(14),
             ),
           );
         }).toList(),

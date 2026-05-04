@@ -19,6 +19,7 @@ const seaTheme = GameThemeData(
   boardRadius: 16.0,
   tileRadius: 9999.0, // 원형 타일
   isCircleTile: true,
+  thumbnailAsset: 'assets/images/theme-thum-sea.png',
   backgroundAsset: 'assets/images/bg_sea.png',
   backgroundVideoAsset: 'assets/images/bg_sea.mp4',
   tileBgAsset: 'assets/tiles/Tile-sea-bg.png',
@@ -53,6 +54,7 @@ const seaTheme = GameThemeData(
     16: Color(0xFFFFFFFF),
   },
   animationConfig: TileAnimationConfig(
-    mergeScalePeak: 1.3,
+    mergeDuration: Duration(milliseconds: 200),
+    mergeScalePeak: 1.45,
   ),
 );
