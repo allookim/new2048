@@ -112,10 +112,10 @@ class _TileLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const colors = [
-      Color(0xFFFDA72D),
-      Color(0xFF533281),
-      Color(0xFF399BFA),
-      Color(0xFFED5270),
+      Color(0xFF4A8A78),
+      Color(0xFF9B59B6),
+      Color(0xFF3498DB),
+      Color(0xFFE55347),
     ];
     const size = 52.0;
     const gap = 6.0;
