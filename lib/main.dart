@@ -41,16 +41,20 @@ class _AppState extends State<App> {
   @override
   void initState() {
     super.initState();
-    // OAuth 콜백 후 점수 양방향 동기화
+    // 로그인/로그아웃 시 점수 동기화
     Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
-      if (data.event == AuthChangeEvent.signedIn &&
-          !SupabaseService.instance.isAnonymous) {
+      if (data.event == AuthChangeEvent.signedIn) {
         final prefs = await SharedPreferences.getInstance();
         final localBest = prefs.getInt('best_score') ?? 0;
         final localBestItem = prefs.getInt('best_item_score') ?? 0;
         final synced = await SupabaseService.instance.syncLocalScores(localBest, localBestItem);
         await _gameController.syncFromServer(synced.bestScore, synced.bestItemScore);
-        await SupabaseService.instance.init();
+        if (!SupabaseService.instance.isAnonymous) {
+          await SupabaseService.instance.init();
+        }
+      } else if (data.event == AuthChangeEvent.signedOut) {
+        // 로그아웃 시 로컬 점수 초기화
+        await _gameController.syncFromServer(0, 0);
       }
     });
   }
