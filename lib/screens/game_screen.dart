@@ -9,6 +9,7 @@ import '../core/theme/theme_controller.dart';
 import '../game/board_logic.dart';
 import '../game/game_controller.dart';
 import '../models/game_mode.dart';
+import '../widgets/basic_animated_background.dart';
 import '../widgets/game_board.dart';
 import '../widgets/game_over_overlay.dart';
 import '../widgets/skill_bar.dart';
@@ -229,6 +230,10 @@ class _GameScreenState extends State<GameScreen>
                     errorBuilder: (_, __, ___) =>
                         Container(color: tc.theme.backgroundColor),
                   );
+                }
+                // Basic 테마: Lottie 루핑 배경
+                if (tc.theme.id == 'basic') {
+                  return const BasicAnimatedBackground();
                 }
                 return Consumer<GameController>(
                   builder: (_, gc, __) {
@@ -903,7 +908,9 @@ class _FigmaScore extends StatelessWidget {
               fontWeight: FontWeight.w800,
               letterSpacing: -1.5,
               fillColor: Colors.white,
-              strokeColor: const Color(0xFF006494),
+              strokeColor: context.read<ThemeController>().theme.id == 'basic'
+                  ? Colors.transparent
+                  : const Color(0xFF006494),
               strokeWidth: 8,
             ),
           ],

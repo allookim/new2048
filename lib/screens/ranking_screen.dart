@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_service.dart';
 import '../services/game_center_service.dart';
 import '../utils/nickname_filter.dart';
@@ -24,12 +26,36 @@ class _RankingScreenState extends State<RankingScreen> {
   int? _itemMyRank;
   bool _loading = true;
   String? _myNickname;
+  StreamSubscription<AuthState>? _authSub;
 
   @override
   void initState() {
     super.initState();
     _load();
     _checkAuth();
+    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      if (!mounted) return;
+      if (data.event == AuthChangeEvent.signedIn ||
+          data.event == AuthChangeEvent.userUpdated) {
+        _onAuthChanged();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _onAuthChanged() async {
+    final nickname = await SupabaseService.instance.getNickname();
+    if (!mounted) return;
+    setState(() => _myNickname = nickname);
+    if (nickname == null || nickname == 'Player') {
+      if (mounted) await _showNicknameDialog(isFirst: true);
+    }
+    _load();
   }
 
   Future<void> _checkAuth() async {
@@ -285,7 +311,7 @@ class _RankingScreenState extends State<RankingScreen> {
                 Navigator.of(ctx).pop();
                 if (isFirst) {
                   // 닉네임 설정 취소 → 세션 제거 → 다음 방문 시 로그인 선택 팝업 재표시
-                  await SupabaseService.instance.signOutOnly();
+                  await SupabaseService.instance.signOut();
                   if (mounted) setState(() => _myNickname = null);
                 }
               },
@@ -410,8 +436,8 @@ class _RankingScreenState extends State<RankingScreen> {
                   : IndexedStack(
                       index: _tabIndex,
                       children: [
-                        _RankList(entries: _normalRanks, myRank: _normalMyRank, onRefresh: _load),
-                        _RankList(entries: _itemRanks,  myRank: _itemMyRank,  onRefresh: _load),
+                        _RankList(entries: _normalRanks, myRank: _normalMyRank, isLoggedIn: SupabaseService.instance.isLoggedIn, onRefresh: _load),
+                        _RankList(entries: _itemRanks,  myRank: _itemMyRank,  isLoggedIn: SupabaseService.instance.isLoggedIn, onRefresh: _load),
                       ],
                     ),
             ),
@@ -508,13 +534,16 @@ class _SheetOption extends StatelessWidget {
 class _RankList extends StatelessWidget {
   final List<RankEntry> entries;
   final int? myRank;
+  final bool isLoggedIn;
   final VoidCallback onRefresh;
 
-  const _RankList({required this.entries, required this.myRank, required this.onRefresh});
+  const _RankList({required this.entries, required this.myRank, required this.isLoggedIn, required this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
-    if (entries.isEmpty) {
+    final showBanner = isLoggedIn;
+
+    if (entries.isEmpty && !showBanner) {
       return const Center(
         child: Text('No scores yet', style: TextStyle(fontFamily: 'Nunito', color: Colors.white54, fontSize: 16)),
       );
@@ -525,10 +554,11 @@ class _RankList extends StatelessWidget {
       color: _kTeal,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        itemCount: entries.length + (myRank != null ? 1 : 0),
+        itemCount: entries.length + (showBanner ? 1 : 0),
         itemBuilder: (context, index) {
-          if (index == 0 && myRank != null) return _MyRankBanner(rank: myRank!);
-          final i = myRank != null ? index - 1 : index;
+          if (index == 0 && showBanner) return _MyRankBanner(rank: myRank);
+          final i = showBanner ? index - 1 : index;
+          if (i >= entries.length) return const SizedBox.shrink();
           return _RankRow(entry: entries[i], rank: i + 1);
         },
       ),
@@ -537,7 +567,7 @@ class _RankList extends StatelessWidget {
 }
 
 class _MyRankBanner extends StatelessWidget {
-  final int rank;
+  final int? rank;
   const _MyRankBanner({required this.rank});
 
   @override
@@ -552,9 +582,17 @@ class _MyRankBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text('🏆', style: TextStyle(fontSize: 20)),
+          Text(rank != null ? '🏆' : '👋', style: const TextStyle(fontSize: 20)),
           const SizedBox(width: 10),
-          Text('My Rank: #$rank', style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w800, fontSize: 16, color: _kTeal)),
+          Text(
+            rank != null ? 'My Rank: #$rank' : 'No scores yet — play a game!',
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontWeight: FontWeight.w800,
+              fontSize: rank != null ? 16 : 14,
+              color: _kTeal,
+            ),
+          ),
         ],
       ),
     );

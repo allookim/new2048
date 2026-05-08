@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/theme/theme_controller.dart';
 import 'game/game_controller.dart';
@@ -27,15 +28,39 @@ void main() async {
   runApp(const App());
 }
 
-class App extends StatelessWidget {
+class App extends StatefulWidget {
   const App({super.key});
+
+  @override
+  State<App> createState() => _AppState();
+}
+
+class _AppState extends State<App> {
+  final _gameController = GameController();
+
+  @override
+  void initState() {
+    super.initState();
+    // OAuth 콜백 후 점수 양방향 동기화
+    Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
+      if (data.event == AuthChangeEvent.signedIn &&
+          !SupabaseService.instance.isAnonymous) {
+        final prefs = await SharedPreferences.getInstance();
+        final localBest = prefs.getInt('best_score') ?? 0;
+        final localBestItem = prefs.getInt('best_item_score') ?? 0;
+        final synced = await SupabaseService.instance.syncLocalScores(localBest, localBestItem);
+        await _gameController.syncFromServer(synced.bestScore, synced.bestItemScore);
+        await SupabaseService.instance.init();
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeController()),
-        ChangeNotifierProvider(create: (_) => GameController()),
+        ChangeNotifierProvider.value(value: _gameController),
       ],
       child: Consumer<ThemeController>(
         builder: (context, themeController, child) {

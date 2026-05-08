@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_service.dart';
 import '../services/settings_service.dart';
 import '../services/audio_service.dart';
@@ -25,17 +27,28 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   String? _nickname;
   bool _isAnonymous = true;
+  bool _isLoggedIn = false;
   String? _email;
+  StreamSubscription<AuthState>? _authSub;
 
   @override
   void initState() {
     super.initState();
     _loadAccountInfo();
     SettingsService.instance.addListener(_onSettingsChanged);
+    _authSub = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      if (!mounted) return;
+      if (data.event == AuthChangeEvent.signedIn ||
+          data.event == AuthChangeEvent.signedOut ||
+          data.event == AuthChangeEvent.userUpdated) {
+        _loadAccountInfo();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _authSub?.cancel();
     SettingsService.instance.removeListener(_onSettingsChanged);
     super.dispose();
   }
@@ -49,7 +62,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final nickname = await svc.getNickname();
     if (!mounted) return;
     setState(() {
-      _isAnonymous = svc.isAnonymous;
+      _isLoggedIn = svc.isLoggedIn;
+      _isAnonymous = !svc.isLoggedIn || svc.isAnonymous;
       _nickname = nickname;
       _email = svc.userEmail;
     });
@@ -155,7 +169,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChangeNickname: _changeNickname,
                 onLogout: () async {
                   await SupabaseService.instance.signOut();
-                  if (mounted) _loadAccountInfo();
+                  if (mounted) {
+                    _loadAccountInfo();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Logged out',
+                          style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w700),
+                        ),
+                        backgroundColor: Color(0xFF1a2d6e),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
                 },
               ),
 

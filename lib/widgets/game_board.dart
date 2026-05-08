@@ -19,6 +19,7 @@ class GameBoard extends StatefulWidget {
 class _GameBoardState extends State<GameBoard>
     with SingleTickerProviderStateMixin {
   late AnimationController _wiperController;
+  Offset? _panStart;
 
   @override
   void initState() {
@@ -68,19 +69,37 @@ class _GameBoardState extends State<GameBoard>
                 return KeyEventResult.ignored;
               },
               child: GestureDetector(
+                onPanStart: (details) {
+                  _panStart = details.globalPosition;
+                },
                 onPanEnd: (details) {
+                  if (_panStart == null) return;
                   final velocity = details.velocity.pixelsPerSecond;
-                  const threshold = 200.0;
-                  if (velocity.dx.abs() > velocity.dy.abs()) {
-                    if (velocity.dx > threshold) {
+                  final delta = details.globalPosition - _panStart!;
+                  _panStart = null;
+
+                  const velocityThreshold = 100.0;
+                  const distanceThreshold = 20.0;
+
+                  final vx = velocity.dx.abs();
+                  final vy = velocity.dy.abs();
+                  final dx = delta.dx.abs();
+                  final dy = delta.dy.abs();
+
+                  // 속도 또는 거리 중 하나라도 임계값 이상이면 이동
+                  final isHorizontal = (vx > vy) || (dx > dy && dx > distanceThreshold);
+                  final isVertical = !isHorizontal && (vy > vx || dy > distanceThreshold);
+
+                  if (isHorizontal && (vx > velocityThreshold || dx > distanceThreshold)) {
+                    if (velocity.dx > 0 || delta.dx > distanceThreshold) {
                       controller.move(Direction.right);
-                    } else if (velocity.dx < -threshold) {
+                    } else {
                       controller.move(Direction.left);
                     }
-                  } else {
-                    if (velocity.dy > threshold) {
+                  } else if (isVertical && (vy > velocityThreshold || dy > distanceThreshold)) {
+                    if (velocity.dy > 0 || delta.dy > distanceThreshold) {
                       controller.move(Direction.down);
-                    } else if (velocity.dy < -threshold) {
+                    } else {
                       controller.move(Direction.up);
                     }
                   }

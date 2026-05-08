@@ -21,7 +21,18 @@
       "mcp__TalkToFigma__set_text_content",
       "Bash(gh repo:*)",
       "mcp__TalkToFigma__export_node_as_image",
-      "mcp__TalkToFigma__read_my_design"
+      "mcp__TalkToFigma__read_my_design",
+      "Bash(ls:*)",
+      "Bash(ffprobe:*)",
+      "Bash(keytool:*)",
+      "Bash(\"/c/Program Files/Android/Android Studio/jbr/bin/keytool.exe\":*)",
+      "Bash(bunx cursor-talk-to-figma-socket:*)",
+      "Bash(python:*)",
+      "mcp__TalkToFigma__create_frame",
+      "mcp__TalkToFigma__create_rectangle",
+      "Read(//tmp/**)",
+      "Bash(sed -i 's|  <h2>7. Contact Us</h2>|  <h2 id=\"\"delete-account\"\">7. Account \\\\&amp; Data Deletion</h2>\\\\n  <p>To request deletion of your account and all associated data \\(nickname, scores\\), please send an email to:<br>\\\\n  <strong><a href=\"\"mailto:allookim@gmail.com\"\">allookim@gmail.com</a></strong><br>\\\\n  with the subject line <strong>\"\"Data Deletion Request\"\"</strong>. We will process your request within 7 days.</p>\\\\n\\\\n  <h2>8. Contact Us</h2>|' index.html)",
+      "Bash(netstat:*)"
     ]
   }
 }

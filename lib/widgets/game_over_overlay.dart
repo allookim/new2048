@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../game/game_controller.dart';
@@ -59,21 +60,27 @@ class _GameOverOverlayState extends State<GameOverOverlay>
           child: AnimatedOpacity(
             opacity: visible ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 200),
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xE0100A36),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: AnimatedBuilder(
-                animation: _ctrl,
-                builder: (context, child) => Opacity(
-                  opacity: _fade.value.clamp(0.0, 1.0),
-                  child: Transform.scale(
-                    scale: _scale.value,
-                    child: child,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: AnimatedBuilder(
+                    animation: _ctrl,
+                    builder: (context, child) => Opacity(
+                      opacity: _fade.value.clamp(0.0, 1.0),
+                      child: Transform.scale(
+                        scale: _scale.value,
+                        child: child,
+                      ),
+                    ),
+                    child: _GameOverContent(gc: gc, onEndGame: widget.onEndGame),
                   ),
                 ),
-                child: _GameOverContent(gc: gc, onEndGame: widget.onEndGame),
               ),
             ),
           ),

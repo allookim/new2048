@@ -79,17 +79,27 @@ class GameController extends ChangeNotifier {
     _bestItemScore = prefs.getInt(_bestItemScoreKey) ?? 0;
   }
 
+  /// 로그인 후 서버 점수로 로컬 교체 (계정 전환 대응)
+  Future<void> syncFromServer(int serverBest, int serverBestItem) async {
+    final prefs = await SharedPreferences.getInstance();
+    _bestScore = serverBest;
+    _bestItemScore = serverBestItem;
+    await prefs.setInt(_bestScoreKey, _bestScore);
+    await prefs.setInt(_bestItemScoreKey, _bestItemScore);
+    notifyListeners();
+  }
+
   Future<void> _saveBestScore() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_bestScoreKey, _bestScore);
-    SupabaseService.instance.submitScore(score: _bestScore, gameMode: 'normal');
+    await SupabaseService.instance.submitScore(score: _bestScore, gameMode: 'normal');
     GameCenterService.instance.submitNormalScore(_bestScore);
   }
 
   Future<void> _saveBestItemScore() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_bestItemScoreKey, _bestItemScore);
-    SupabaseService.instance.submitScore(score: _bestItemScore, gameMode: 'item');
+    await SupabaseService.instance.submitScore(score: _bestItemScore, gameMode: 'item');
   }
 
   void _pushHistory() {
@@ -211,10 +221,10 @@ class GameController extends ChangeNotifier {
 
       if (result.mergeCount > 0) {
         if (_combo >= 2) {
-          if (SettingsService.instance.vibration) HapticFeedback.mediumImpact();
+          if (SettingsService.instance.vibration) HapticFeedback.heavyImpact();
           AudioService.instance.playCombo();
         } else {
-          if (SettingsService.instance.vibration) HapticFeedback.lightImpact();
+          if (SettingsService.instance.vibration) HapticFeedback.mediumImpact();
           AudioService.instance.playMove();
         }
       } else {
@@ -265,7 +275,7 @@ class GameController extends ChangeNotifier {
       _score += result.scoreGained;
 
       if (result.mergeCount > 0) {
-        if (SettingsService.instance.vibration) HapticFeedback.lightImpact();
+        if (SettingsService.instance.vibration) HapticFeedback.mediumImpact();
       }
       AudioService.instance.playMove();
 
