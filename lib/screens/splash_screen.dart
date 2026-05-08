@@ -91,12 +91,10 @@ class _SplashScreenState extends State<SplashScreen>
           opacity: _fadeAnim,
           child: ScaleTransition(
             scale: _scaleAnim,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 타일 모양 로고
-                const _TileLogo(),
-              ],
+            child: Image.asset(
+              'assets/images/splash_logo.png',
+              width: 120,
+              height: 120,
             ),
           ),
         ),
@@ -105,38 +103,3 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-/// 스플래쉬용 미니 2×2 타일 그리드 로고
-class _TileLogo extends StatelessWidget {
-  const _TileLogo();
-
-  @override
-  Widget build(BuildContext context) {
-    const colors = [
-      Color(0xFF4A8A78),
-      Color(0xFF9B59B6),
-      Color(0xFF3498DB),
-      Color(0xFFE55347),
-    ];
-    const size = 52.0;
-    const gap = 6.0;
-
-    return SizedBox(
-      width: size * 2 + gap,
-      height: size * 2 + gap,
-      child: Wrap(
-        spacing: gap,
-        runSpacing: gap,
-        children: colors.map((c) {
-          return Container(
-            width: size,
-            height: size,
-            decoration: BoxDecoration(
-              color: c,
-              borderRadius: BorderRadius.circular(14),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-}
