@@ -21,6 +21,12 @@ void main() async {
   } catch (e) {
     debugPrint('Supabase setup error: $e');
   }
+  // 세션 없으면 로컬 점수 초기화 (자동 백업 복원 대응)
+  if (!SupabaseService.instance.isLoggedIn) {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('best_score', 0);
+    await prefs.setInt('best_item_score', 0);
+  }
   await SettingsService.instance.load();
   GameCenterService.instance.signIn();
   await AudioService.instance.init();

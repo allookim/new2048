@@ -52,9 +52,6 @@ class _RankingScreenState extends State<RankingScreen> {
     final nickname = await SupabaseService.instance.getNickname();
     if (!mounted) return;
     setState(() => _myNickname = nickname);
-    if (nickname == null || nickname == 'Player') {
-      if (mounted) await _showNicknameDialog(isFirst: true);
-    }
     _load();
   }
 
