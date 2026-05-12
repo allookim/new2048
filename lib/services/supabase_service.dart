@@ -28,6 +28,16 @@ class SupabaseService {
   bool get isAnonymous => _client.auth.currentUser?.isAnonymous ?? false;
   String? get userEmail => _client.auth.currentUser?.email;
 
+  /// 현재 로그인 프로바이더 ('google', 'apple', null)
+  String? get authProvider {
+    final identities = _client.auth.currentUser?.identities;
+    if (identities == null || identities.isEmpty) return null;
+    for (final id in identities) {
+      if (id.provider == 'google' || id.provider == 'apple') return id.provider;
+    }
+    return null;
+  }
+
   /// 앱 시작 시 세션 복원 (자동 익명 로그인 제거 — LoginScreen이 담당)
   Future<void> init() async {
     try {

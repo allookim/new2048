@@ -220,11 +220,15 @@ class _RankingScreenState extends State<RankingScreen> {
                   ] else ...[
                     Text(_myNickname ?? 'Player', style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white)),
                     const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(color: _kTeal.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(999)),
-                      child: const Text('Google', style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w800, fontSize: 11, color: _kTeal)),
-                    ),
+                    Builder(builder: (_) {
+                      final provider = SupabaseService.instance.authProvider;
+                      final label = provider == 'apple' ? 'Apple' : 'Google';
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(color: _kTeal.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(999)),
+                        child: Text(label, style: const TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w800, fontSize: 11, color: _kTeal)),
+                      );
+                    }),
                   ],
                 ],
               ),
@@ -240,7 +244,29 @@ class _RankingScreenState extends State<RankingScreen> {
                   _showNicknameDialog();
                 },
               ),
-              // Google 연동 (익명일 때만)
+              // 로그아웃
+              if (!SupabaseService.instance.isAnonymous)
+                _SheetOption(
+                  icon: Icons.logout_rounded,
+                  label: 'Log out',
+                  color: Colors.white54,
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    await SupabaseService.instance.signOut();
+                    if (mounted) {
+                      setState(() => _myNickname = null);
+                      _load();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Logged out', style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w700)),
+                          backgroundColor: Color(0xFF1a2d6e),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              // Google/Apple 연동 (익명일 때만)
               if (SupabaseService.instance.isAnonymous) ...[
                 _SheetOption(
                   icon: Icons.login_rounded,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/supabase_service.dart';
@@ -113,6 +114,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
     controller.dispose();
   }
 
+  Future<void> _showLoginDialog() async {
+    final isIOS = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _kCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Sign In',
+          style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w900, fontSize: 20, color: _kText),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: _kAccent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                SupabaseService.instance.signInWithGoogle();
+              },
+              child: const Text('Continue with Google', style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w800, fontSize: 16)),
+            ),
+            if (isIOS) ...[
+              const SizedBox(height: 10),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  SupabaseService.instance.signInWithApple();
+                },
+                child: const Text(' Continue with Apple', style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w800, fontSize: 16)),
+              ),
+            ],
+            const SizedBox(height: 6),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel', style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w700, fontSize: 14, color: _kDim)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -163,9 +220,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 isAnonymous: _isAnonymous,
                 nickname: _nickname,
                 email: _email,
-                onLoginWithGoogle: () async {
-                  await SupabaseService.instance.signInWithGoogle();
-                },
+                provider: SupabaseService.instance.authProvider,
+                onLogin: () => _showLoginDialog(),
                 onChangeNickname: _changeNickname,
                 onLogout: () async {
                   await SupabaseService.instance.signOut();
@@ -252,7 +308,8 @@ class _AccountCard extends StatelessWidget {
   final bool isAnonymous;
   final String? nickname;
   final String? email;
-  final VoidCallback onLoginWithGoogle;
+  final String? provider;
+  final VoidCallback onLogin;
   final VoidCallback onChangeNickname;
   final VoidCallback onLogout;
 
@@ -260,7 +317,8 @@ class _AccountCard extends StatelessWidget {
     required this.isAnonymous,
     required this.nickname,
     required this.email,
-    required this.onLoginWithGoogle,
+    required this.provider,
+    required this.onLogin,
     required this.onChangeNickname,
     required this.onLogout,
   });
@@ -292,7 +350,7 @@ class _AccountCard extends StatelessWidget {
           ),
         ),
         GestureDetector(
-          onTap: onLoginWithGoogle,
+          onTap: onLogin,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
@@ -300,7 +358,7 @@ class _AccountCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(999),
             ),
             child: const Text(
-              'Google',
+              'Sign In',
               style: TextStyle(fontFamily: 'Nunito', fontWeight: FontWeight.w900, fontSize: 13, color: _kText),
             ),
           ),
