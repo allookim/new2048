@@ -81,11 +81,13 @@ class _GameScreenState extends State<GameScreen>
   }
 
   void _openDrawer() {
+    context.read<GameController>().pause();
     _drawerController.forward();
   }
 
   void _closeDrawer() {
     _drawerController.reverse();
+    context.read<GameController>().resume();
   }
 
   void _openPauseMenu() {
@@ -666,34 +668,31 @@ class _FullScreenDrawer extends StatelessWidget {
                       _MenuItem(
                         label: 'Ranking',
                         onTap: () {
-                          onClose();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (_) => const RankingScreen()),
-                          ).then((_) => onReopen());
+                          );
                         },
                       ),
                       _MenuItem(
                         label: 'Theme',
                         onTap: () {
-                          onClose();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (_) => const ThemeScreen()),
-                          ).then((_) => onReopen());
+                          );
                         },
                       ),
                       _MenuItem(
                         label: 'Settings',
                         onTap: () {
-                          onClose();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (_) => const SettingsScreen()),
-                          ).then((_) => onReopen());
+                          );
                         },
                       ),
                     ],
