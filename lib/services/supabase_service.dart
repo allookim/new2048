@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -68,6 +69,9 @@ class SupabaseService {
         OAuthProvider.google,
         redirectTo: _redirectTo,
         queryParams: {'prompt': 'select_account'},
+        authScreenLaunchMode: !kIsWeb && Platform.isIOS
+            ? LaunchMode.externalApplication
+            : LaunchMode.platformDefault,
       );
     } catch (e) {
       debugPrint('Google sign in error: $e');
@@ -81,7 +85,13 @@ class SupabaseService {
       if (!kIsWeb && isLoggedIn && isAnonymous) {
         await _client.auth.signOut();
       }
-      await _client.auth.signInWithOAuth(OAuthProvider.apple, redirectTo: _redirectTo);
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.apple,
+        redirectTo: _redirectTo,
+        authScreenLaunchMode: !kIsWeb && Platform.isIOS
+            ? LaunchMode.externalApplication
+            : LaunchMode.platformDefault,
+      );
     } catch (e) {
       debugPrint('Apple sign in error: $e');
     }
