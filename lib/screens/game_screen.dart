@@ -308,6 +308,7 @@ class _GameScreenState extends State<GameScreen>
                       position: _drawerSlide,
                       child: _FullScreenDrawer(
                         onClose: _closeDrawer,
+                        onReopen: _openDrawer,
                         useNewLayout: _useNewLayout,
                         onSelectNewLayout: (mode) {
                           setState(() => _useNewLayout = true);
@@ -607,10 +608,12 @@ class _ArrowBtn extends StatelessWidget {
 
 class _FullScreenDrawer extends StatelessWidget {
   final VoidCallback onClose;
+  final VoidCallback onReopen;
   final bool useNewLayout;
   final void Function(GameMode) onSelectNewLayout;
   const _FullScreenDrawer({
     required this.onClose,
+    required this.onReopen,
     required this.useNewLayout,
     required this.onSelectNewLayout,
   });
@@ -668,7 +671,7 @@ class _FullScreenDrawer extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                                 builder: (_) => const RankingScreen()),
-                          );
+                          ).then((_) => onReopen());
                         },
                       ),
                       _MenuItem(
@@ -679,17 +682,18 @@ class _FullScreenDrawer extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                                 builder: (_) => const ThemeScreen()),
-                          );
+                          ).then((_) => onReopen());
                         },
                       ),
                       _MenuItem(
                         label: 'Settings',
                         onTap: () {
+                          onClose();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (_) => const SettingsScreen()),
-                          );
+                          ).then((_) => onReopen());
                         },
                       ),
                     ],
